@@ -1,3 +1,4 @@
+//controllers/mail.js
 const { sendEmail } = require('../utils/handleMails');
 const { handleHttpError } = require('../utils/handleError');
 const { matchedData } = require('express-validator');

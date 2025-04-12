@@ -1,3 +1,5 @@
+//middleware/session.js
+
 const { handleHttpError } = require("../utils/handleError")
 const { verifyToken } = require("../utils/handleJwt")
 const usersModel = require("../models/nosql/users")
