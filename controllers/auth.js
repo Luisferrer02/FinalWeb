@@ -1,3 +1,4 @@
+//controllers/auth.js
 const { matchedData } = require("express-validator");
 const { tokenSign } = require("../utils/handleJwt");
 const { encrypt, compare } = require("../utils/handlePassword");
