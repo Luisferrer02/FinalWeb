@@ -22,7 +22,7 @@ const ClientSchema = new mongoose.Schema(
     archived: { type: Boolean, default: false }
   },
   {
-    timestamps: true,
+    timestamps: true, //fechas creacion y actualizacion
     versionKey: false
   }
 );

@@ -3,7 +3,6 @@
 const { handleHttpError } = require("../utils/handleError")
 const { verifyToken } = require("../utils/handleJwt")
 const usersModel = require("../models/nosql/users")
-const propertiesKey = require("../utils/handlePropertiesEngine")(); // Se importa la clave
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -18,7 +17,7 @@ const authMiddleware = async (req, res, next) => {
       handleHttpError(res, "ERROR_ID_TOKEN", 401)
       return
     }
-    const userId = dataToken[propertiesKey.id] || dataToken._id;
+    const userId = dataToken._id;
     if (!userId) {
       handleHttpError(res, "ERROR_ID_TOKEN", 401)
       return
