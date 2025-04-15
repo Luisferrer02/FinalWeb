@@ -75,7 +75,10 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const project = await Project.findOneAndDelete({ _id: id, userId: req.user._id });
+    const project = await Project.findOneAndDelete({
+      _id: id,
+      userId: req.user._id,
+    });
     if (!project)
       return res.status(404).json({ error: "Proyecto no encontrado" });
     res.status(200).json({ message: "Proyecto eliminado correctamente" });
@@ -129,5 +132,5 @@ module.exports = {
   updateProject,
   deleteProject,
   archiveProject,
-  restoreProject
+  restoreProject,
 };
