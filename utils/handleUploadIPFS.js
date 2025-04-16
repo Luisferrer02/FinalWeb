@@ -21,7 +21,7 @@ const uploadToPinata = async (fileBuffer, fileName) => {
 
   try {
     // Importa dinámicamente node-fetch, ya que es un módulo ES
-    const { default: fetch } = await import('node-fetch');
+    const fetch = require('node-fetch');
 
     const headers = {
       ...data.getHeaders(),
