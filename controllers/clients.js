@@ -1,4 +1,6 @@
 const Client = require('../models/nosql/clients');
+const { uploadToPinata } = require("../utils/handleUploadIPFS");
+const { handleHttpError } = require("../utils/handleError");
 
 const getClients = async (req, res) => {
     try { 
@@ -123,15 +125,15 @@ const getArchivedClients = async (req, res) => {
     }
   };
   
-  // Actualiza el logo del cliente subiendo una imagen (se espera usar un middleware de file upload)
   const updateLogoClient = async (req, res) => {
     try {
       const { id } = req.params;
       if (!req.file) return res.status(400).json({ error: "No se ha subido ningún archivo" });
-  
-      // Aquí puedes integrar tu lógica de almacenamiento (por ejemplo, usando un helper que suba a tu servicio de archivos)
-      // Supongamos que obtienes la URL del logo subido:
-      const logoUrl = `http://myfiles/storage/${req.file.filename || req.file.originalname}`;
+      
+      // Subimos la imagen a Pinata y obtenemos el hash IPFS
+      const pinataResponse = await uploadToPinata(req.file.buffer, req.file.originalname);
+      // Construimos la URL usando PINATA_GATEWAY_URL (por ejemplo, "violet-many-bovid-488.mypinata.cloud")
+      const logoUrl = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${pinataResponse.IpfsHash}`;
   
       const client = await Client.findOneAndUpdate(
         { _id: id, userId: req.user._id },
@@ -145,6 +147,7 @@ const getArchivedClients = async (req, res) => {
       res.status(500).json({ error: "Error interno en el servidor" });
     }
   };
+  
   
   module.exports = {
     getClients,
