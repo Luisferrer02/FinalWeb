@@ -1,7 +1,7 @@
 //validators/storage.js
 
 const { check } = require("express-validator")
-const validateResults = require("../utils/handleValidator")
+const { validateResults } = require("../utils/handleValidator");
 
 //No necesita validatorCreateItem porque ya está haciendo uso de Multer
 
