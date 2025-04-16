@@ -1,11 +1,326 @@
 @baseUrl = http://localhost:3002
 
+######################################################################
+# 1. AUTH Endpoints
+######################################################################
+
+### Registro de usuario
 POST {{baseUrl}}/api/auth/register HTTP/1.1
 Content-Type: application/json
 
 {
   "name": "Pedro",
   "age": 20,
-  "email": "pedro@test.com",
+  "email": "luisferrer2002+test69@gmail.com",
   "password": "HolaMundo01"
+}
+
+### Login de usuario
+POST {{baseUrl}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "luisferrer2002+test69@gmail.com",
+  "password": "HolaMundo01"
+}
+
+### Validación de email (usuario obtenido del registro)
+# Debes reemplazar el código "210693" por el código generado para el usuario en la BD
+POST {{baseUrl}}/api/users/validate-email HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZlZDFiMjJkODcyYjViZjU5YzI2NDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDc1MzA3NCwiZXhwIjoxNzQ0ODM5NDc0fQ.TOTxnqCNsTwj0jPLWAtBSvmZZl5S2D0p1_ma8_v7tj0
+
+{
+  "code": "706942"
+}
+
+######################################################################
+# 2. CLIENTS Endpoints
+######################################################################
+@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZlZDFiMjJkODcyYjViZjU5YzI2NDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDc5NTc2MSwiZXhwIjoxNzQ0ODgyMTYxfQ.bauemLpSu_7lc7MHBqNyepbTHLIb6Vk28BVPhgunk-0
+### Crear Cliente
+POST {{baseUrl}}/api/clients HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "name": "Client Test",
+  "cif": "T1234567",
+  "address": {
+    "street": "Test Street",
+    "number": 10,
+    "postal": 12345,
+    "city": "Test City",
+    "province": "Test Province"
+  }
+}
+
+### Listar Clientes
+GET {{baseUrl}}/api/clients HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Obtener Cliente por ID
+# Reemplaza {{clientId}} por el id retornado al crear el cliente
+GET {{baseUrl}}/api/clients/67fed32c2d872b5bf59c2662 HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+###
+@clientId = 67fed32c2d872b5bf59c2662
+### Actualizar Cliente
+PUT {{baseUrl}}/api/clients/{{clientId}} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "name": "Client Actualizado",
+  "cif": "U1234567",
+  "address": {
+    "street": "Calle Actualizada",
+    "number": 20,
+    "postal": 54321,
+    "city": "Ciudad Actualizada",
+    "province": "Provincia Actualizada"
+  }
+}
+
+### Archivar Cliente (Soft Delete)
+DELETE {{baseUrl}}/api/clients/archive/{{clientId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Listar Clientes Archivados
+GET {{baseUrl}}/api/clients/archive HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Restaurar Cliente Archivado
+PATCH {{baseUrl}}/api/clients/restore/{{clientId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Eliminar Cliente (Hard Delete)
+DELETE {{baseUrl}}/api/clients/{{clientId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Actualizar Logo del Cliente
+PATCH {{baseUrl}}/api/clients/logo/{{clientId}} HTTP/1.1
+Content-Type: multipart/form-data; boundary=Boundary
+Authorization: Bearer {{tokenFromLogin}}
+
+--Boundary
+Content-Disposition: form-data; name="image"; filename="fcb.jpg"
+Content-Type: image/jpeg
+
+< ./resources/fcb.jpg
+--Boundary--
+
+
+######################################################################
+# 3. PROJECTS Endpoints
+######################################################################
+
+### Crear Proyecto
+POST {{baseUrl}}/api/projects HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "name": "Proyecto Test",
+  "clientId": "{{clientId}}",
+  "description": "Descripción del proyecto test"
+}
+
+### Listar Proyectos
+GET {{baseUrl}}/api/projects HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+###
+@projectId = 67ff7bb98e0324799c067670
+### Obtener Proyecto por ID
+# Reemplazar {{projectId}} por el id creado
+GET {{baseUrl}}/api/projects/{{projectId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Actualizar Proyecto
+PUT {{baseUrl}}/api/projects/{{projectId}} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "name": "Proyecto Actualizado",
+  "description": "Nueva descripción del proyecto"
+}
+
+### Archivar Proyecto (Soft Delete)
+PATCH {{baseUrl}}/api/projects/archive/{{projectId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Restaurar Proyecto Archivado
+PATCH {{baseUrl}}/api/projects/restore/{{projectId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Eliminar Proyecto (Hard Delete)
+DELETE {{baseUrl}}/api/projects/{{projectId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+######################################################################
+# 4. DELIVERY NOTES Endpoints
+######################################################################
+
+### Crear Albarán
+POST {{baseUrl}}/api/deliverynote HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "clientId": "{{clientId}}",
+  "projectId": "{{projectId}}",
+  "items": [
+    {
+      "type": "hour",
+      "description": "Trabajo en proyecto",
+      "quantity": 5
+    },
+    {
+      "type": "material",
+      "description": "Material de oficina",
+      "quantity": 10
+    }
+  ]
+}
+
+### Listar Albaranes
+GET {{baseUrl}}/api/deliverynote HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+###
+@deliveryNoteId = 67ff7bcf8e0324799c067673
+### Obtener Detalle de un Albarán
+# Reemplaza {{deliveryNoteId}} por el id obtenido al crear el albarán
+GET {{baseUrl}}/api/deliverynote/{{deliveryNoteId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Descargar PDF del Albarán
+GET {{baseUrl}}/api/deliverynote/pdf/{{deliveryNoteId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Firmar Albarán (Subida de imagen de firma)
+POST {{baseUrl}}/api/deliverynote/sign/{{deliveryNoteId}} HTTP/1.1
+Content-Type: multipart/form-data; boundary=Boundary
+Authorization: Bearer {{tokenFromLogin}}
+
+--Boundary
+Content-Disposition: form-data; name="image"; filename="firma.png"
+Content-Type: image/png
+
+< ./test/firma.png
+--Boundary--
+
+######################################################################
+# 5. MAIL Endpoints
+######################################################################
+
+### Enviar Email
+POST {{baseUrl}}/api/mail HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "subject": "Correo de Prueba",
+  "text": "Este es un correo enviado desde la API para pruebas.",
+  "to": "luisferrer2002+test69@gmail.com",
+  "from": "luisferrer2002@gmail.com"
+}
+
+######################################################################
+# 6. STORAGE Endpoints
+######################################################################
+
+### Listar todos los ítems de Storage
+GET {{baseUrl}}/api/storage HTTP/1.1
+Content-Type: application/json
+
+###
+@itemId = 67ff6788a8fdcd7841e17835
+
+### Obtener un ítem por ID
+# Reemplaza {{itemId}} por el id del ítem a obtener
+GET {{baseUrl}}/api/storage/{{itemId}} HTTP/1.1
+Content-Type: application/json
+
+### Crear un ítem (subir imagen a Pinata)
+POST {{baseUrl}}/api/storage HTTP/1.1
+Content-Type: multipart/form-data; boundary=Boundary
+Authorization: Bearer {{tokenFromLogin}}
+
+--Boundary
+Content-Disposition: form-data; name="image"; filename="fcb.jpg"
+Content-Type: image/jpeg
+
+< ./resources/fcb.jpg
+--Boundary--
+
+
+### Actualizar la imagen de un ítem
+PUT {{baseUrl}}/api/storage/{{itemId}} HTTP/1.1
+Content-Type: multipart/form-data; boundary=Boundary
+
+--Boundary
+Content-Disposition: form-data; name="image"; filename="newimg.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/newimg.jpg
+--Boundary--
+
+### Eliminar un ítem de Storage
+DELETE {{baseUrl}}/api/storage/{{itemId}} HTTP/1.1
+Content-Type: application/json
+
+######################################################################
+# 7. USERS Endpoints
+######################################################################
+
+### Obtener usuario a partir del token
+GET {{baseUrl}}/api/users/me HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Obtener usuario por ID
+# Reemplaza {{userId}} por el id del usuario
+GET {{baseUrl}}/api/users/{{userId}} HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+###
+@userId=67fed1b22d872b5bf59c2643
+### Actualizar usuario (por admin)
+PATCH {{baseUrl}}/api/users/{{userId}} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "role": "admin"
+}
+
+### Eliminar usuario (soft delete)
+DELETE {{baseUrl}}/api/users/me?soft=true HTTP/1.1
+Authorization: Bearer {{tokenFromLogin}}
+
+### Recuperar contraseña (stub)
+POST {{baseUrl}}/api/users/recover-password-code HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "alicia@example.com",
+  "currentPassword": "Password123"
+}
+
+### Cambio de contraseña
+POST {{baseUrl}}/api/users/change-password HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "alicia@example.com",
+  "recoveryCode": "123456",
+  "newPassword": "NewPass456"
+}
+
+### Invitar a un usuario
+POST {{baseUrl}}/api/users/invite HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "email": "bob@example.com"
 }
