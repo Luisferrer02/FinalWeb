@@ -1,23 +1,24 @@
-//validators/users.js
-
-const { check } = require('express-validator');
+const { check, validationResult } = require('express-validator');
 const { validateResults } = require('../utils/handleValidator');
 
+// Validador para obtener un usuario por ID
 const validatorGetUser = [
-    check('id').exists().notEmpty().isMongoId(),
-    (req, res, next) => validateResults(req, res, next)
-]
+  check('id').exists().notEmpty().isMongoId().withMessage("ID no válido"),
+  (req, res, next) => validateResults(req, res, next)  // Esto cubre la validación para ID inválido
+];
 
+// Validador para actualizar un usuario
 const validatorUpdateUser = [
-    check("id").exists().notEmpty().isMongoId(),
-    check("name").optional().notEmpty(),
-    check("age").optional().notEmpty().isInt(),
-    check("email").optional().notEmpty().isEmail(),
-    check("password").optional().notEmpty(),
-    check("role").exists().notEmpty(),
-    (req, res, next) => validateResults(req, res, next),
-]
+  check("id").exists().notEmpty().isMongoId().withMessage("ID no válido"),
+  check("name").optional().notEmpty().withMessage("El nombre es obligatorio si se proporciona"),
+  check("age").optional().isInt({ min: 1 }).withMessage("La edad debe ser un número entero positivo"),
+  check("email").optional().isEmail().withMessage("El email no es válido"),
+  check("password").optional().notEmpty().withMessage("La contraseña es obligatoria si se proporciona"),
+  check("role").exists().notEmpty().withMessage("El rol es obligatorio"),
+  (req, res, next) => validateResults(req, res, next),  // Aquí cubrimos los errores de actualización
+];
 
+// Validador para el registro de un usuario
 const validateRegister = [
   check("email")
     .exists().withMessage("El email es obligatorio")
@@ -26,7 +27,11 @@ const validateRegister = [
   check("password")
     .exists().withMessage("La contraseña es obligatoria")
     .bail()
-    .isLength({ min: 8 }).withMessage("La contraseña debe tener al menos 8 caracteres"),
+    .isLength({ min: 8 }).withMessage("La contraseña debe tener al menos 8 caracteres")
+    .bail()
+    .matches(/\d/).withMessage("La contraseña debe contener al menos un número")
+    .matches(/[A-Z]/).withMessage("La contraseña debe contener al menos una letra mayúscula")
+    .matches(/[a-z]/).withMessage("La contraseña debe contener al menos una letra minúscula"),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -34,9 +39,10 @@ const validateRegister = [
       return res.status(422).json({ errors: errors.array() });
     }
     next();
-  }
+  }  // Aquí se maneja el error de validación de email y password
 ];
 
+// Validador para el código de verificación del email
 const validateEmailCode = [
   check("code")
     .exists().withMessage("El código es obligatorio")
@@ -49,29 +55,36 @@ const validateEmailCode = [
       return res.status(422).json({ errors: errors.array() });
     }
     next();
-  }
+  }  // Aquí se maneja el error del código de verificación
 ];
 
-// validators/recoverPassword.js
+// Validador para el código de recuperación de contraseña
 const validatorRecoverPasswordCode = [
-  check("email").exists().notEmpty().isEmail(),
-  check("currentPassword").exists().notEmpty(),
-  (req, res, next) => validateResults(req, res, next)
+  check("email").exists().notEmpty().isEmail().withMessage("El email es obligatorio y debe ser válido"),
+  check("currentPassword").exists().notEmpty().withMessage("La contraseña actual es obligatoria"),
+  (req, res, next) => validateResults(req, res, next)  // Esto cubre la validación de los datos de recuperación
 ];
 
+// Validador para la nueva contraseña
 const validatorNewPassword = [
-  check("email").exists().notEmpty().isEmail(),
-  check("recoveryCode").exists().notEmpty(),
-  check("newPassword").exists().notEmpty(),
-  (req, res, next) => validateResults(req, res, next)
+  check("email").exists().notEmpty().isEmail().withMessage("El email es obligatorio y debe ser válido"),
+  check("recoveryCode").exists().notEmpty().withMessage("El código de recuperación es obligatorio"),
+  check("newPassword")
+    .exists().withMessage("La nueva contraseña es obligatoria")
+    .bail()
+    .isLength({ min: 8 }).withMessage("La nueva contraseña debe tener al menos 8 caracteres")
+    .bail()
+    .matches(/\d/).withMessage("La nueva contraseña debe contener al menos un número")
+    .matches(/[A-Z]/).withMessage("La nueva contraseña debe contener al menos una letra mayúscula")
+    .matches(/[a-z]/).withMessage("La nueva contraseña debe contener al menos una letra minúscula"),
+  (req, res, next) => validateResults(req, res, next)  // Esto cubre la validación de la nueva contraseña
 ];
-
 
 module.exports = {
-    validatorGetUser,
-    validateRegister,
+  validatorGetUser,
+  validateRegister,
   validateEmailCode,
-    validatorUpdateUser,
-    validatorRecoverPasswordCode,
-    validatorNewPassword
-}
+  validatorUpdateUser,
+  validatorRecoverPasswordCode,
+  validatorNewPassword
+};
