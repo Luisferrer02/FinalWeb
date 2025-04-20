@@ -1,3 +1,4 @@
+// controllers/deliveryNote.js
 const DeliveryNote = require("../models/nosql/deliveryNote");
 const { handleHttpError } = require("../utils/handleError");
 const { uploadToPinata } = require("../utils/handleUploadIPFS");
@@ -116,9 +117,10 @@ const signDeliveryNote = async (req, res) => {
 };
 
 module.exports = {
+  buildPdfTemplate,
   createDeliveryNote,
   getDeliveryNotes,
   getDeliveryNote,
   generateDeliveryNotePdf,
-  signDeliveryNote
+  signDeliveryNote,
 };
