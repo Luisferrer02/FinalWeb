@@ -37,7 +37,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZlZDFiM
 ######################################################################
 # 2. CLIENTS Endpoints
 ######################################################################
-@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZlZDFiMjJkODcyYjViZjU5YzI2NDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDc5NTc2MSwiZXhwIjoxNzQ0ODgyMTYxfQ.bauemLpSu_7lc7MHBqNyepbTHLIb6Vk28BVPhgunk-0
+@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZlZDFiMjJkODcyYjViZjU5YzI2NDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDkyMjM1OSwiZXhwIjoxNzQ1MDA4NzU5fQ.5tDBF666STfYDHzQ6wbnbq4hvXOTlQTcx-FH8lZkvvE
 ### Crear Cliente
 POST {{baseUrl}}/api/clients HTTP/1.1
 Content-Type: application/json
