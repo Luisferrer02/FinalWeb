@@ -120,25 +120,42 @@ const restoreClient = async (req, res) => {
 };
   
 const updateLogoClient = async (req, res) => {
-    try {
-      const { id } = req.params;
-      if (!req.file) return res.status(400).json({ error: "No se ha subido ningún archivo" });
-      
-      const pinataResponse = await uploadToPinata(req.file.buffer, req.file.originalname);
-      const logoUrl = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${pinataResponse.IpfsHash}`;
-  
-      const client = await Client.findOneAndUpdate(
-        { _id: id, userId: req.user._id },
-        { logo: logoUrl },
-        { new: true }
-      );
-      if (!client) return res.status(404).json({ error: "Cliente no encontrado" });
-      res.status(200).json({ message: "Logo actualizado correctamente", client });
-    } catch (error) {
-      console.error("Error al actualizar logo:", error);
-      res.status(500).json({ error: "Error interno en el servidor" });
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No se ha subido ningún archivo" });
     }
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ error: "No autorizado" });
+    }
+
+    const pinataResponse = await uploadToPinata(req.file.buffer, req.file.originalname);
+    const logoUrl = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${pinataResponse.IpfsHash}`;
+
+    const client = await Client.findOneAndUpdate(
+      { _id: id, userId: req.user._id },
+      { logo: logoUrl },
+      { new: true }
+    );
+
+    if (!client) {
+      return res.status(404).json({ error: "Cliente no encontrado" });
+    }
+
+    res.status(200).json({ message: "Logo actualizado correctamente", client });
+
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(404).json({ error: "Cliente no encontrado" }); 
+    }
+
+    console.error("Error al actualizar logo:", error);
+    res.status(500).json({ error: "Error interno en el servidor" });
+  }
 };
+
 
 module.exports = {
     getClients,
