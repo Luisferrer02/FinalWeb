@@ -93,9 +93,13 @@ const getUsers = async (req, res) => {
         subject: "Código para Cambio de Contraseña",
         text: `Tu código de recuperación es: ${recoveryCode}`
       };
-      sendEmail(emailOptions)
-        .then(() => console.log("Email de recuperación enviado"))
-        .catch((error) => console.error("Error enviando email de recuperación:", error));
+      try {
+        await sendEmail(emailOptions);
+        console.log("Email de recuperación enviado");
+      } catch (error) {
+        console.error("Error enviando email de recuperación:", error);
+      }
+      
       
       res.json({ message: "Código de recuperación enviado al correo del usuario" });
     } catch (error) {
@@ -126,9 +130,13 @@ const getUsers = async (req, res) => {
         subject: "Confirmación de Cambio de Contraseña",
         text: "Tu contraseña se ha actualizado exitosamente."
       };
-      sendEmail(emailOptions)
-        .then(() => console.log("Email de confirmación enviado"))
-        .catch((error) => console.error("Error enviando email de confirmación:", error));
+      try {
+        await sendEmail(emailOptions);
+        console.log("Email de confirmación enviado");
+      } catch (error) {
+        console.error("Error enviando email de confirmación:", error);
+      }
+      
         
       res.json({ message: "Contraseña actualizada exitosamente" });
     } catch (error) {
@@ -258,9 +266,13 @@ const inviteUserCtrl = async (req, res) => {
         subject: "Invitación para unirse a la plataforma",
         text: `Has sido invitado a unirte a la plataforma.\nCredenciales:\nEmail: ${email}\nPassword: 1234`
       };
-      sendEmail(emailOptions)
-        .then(() => console.log("Email de invitación enviado"))
-        .catch((error) => console.error("Error enviando email de invitación:", error));
+      try {
+        await sendEmail(emailOptions);
+        console.log("Email de invitación enviado");
+      } catch (error) {
+        console.error("Error enviando email de invitación:", error);
+      }
+      
       
       res.json({ message: "Invitación enviada correctamente", invitedUser });
     } catch (error) {
