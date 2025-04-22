@@ -1,0 +1,920 @@
+openapi: 3.0.0
+info:
+  title: API Web Server
+  description: Documentación de la API para gestión de usuarios, clientes, proyectos, albaranes, almacenamiento y envíos de email.
+  version: 1.0.0
+servers:
+  - url: http://localhost:{port}/api
+    description: Servidor local
+    variables:
+      port:
+        default: '3000'
+        description: Puerto configurado en la variable de entorno PORT
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+
+    # --- Auth ---
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - age
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 3
+        age:
+          type: integer
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 16
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    # --- User ---
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        lastName:
+          type: string
+        nif:
+          type: string
+        age:
+          type: integer
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [user, admin, guest]
+        isEmailVerified:
+          type: boolean
+        status:
+          type: string
+        company:
+          type: object
+          properties:
+            companyName:
+              type: string
+            cif:
+              type: string
+            address:
+              type: string
+        logo:
+          type: string
+        deleted:
+          type: boolean
+
+    # --- Client ---
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        number:
+          type: integer
+        postal:
+          type: integer
+        city:
+          type: string
+        province:
+          type: string
+
+    Client:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        cif:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        logo:
+          type: string
+        activeProjects:
+          type: integer
+        pendingDeliveryNotes:
+          type: integer
+        archivedProjects:
+          type: integer
+        archived:
+          type: boolean
+
+    NewClient:
+      type: object
+      required: [name, cif, address]
+      properties:
+        name:
+          type: string
+        cif:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+
+    # --- Project ---
+    Project:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        clientId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        archived:
+          type: boolean
+
+    NewProject:
+      type: object
+      required: [name, clientId]
+      properties:
+        name:
+          type: string
+        clientId:
+          type: string
+        description:
+          type: string
+
+    # --- Delivery Note ---
+    DeliveryNoteItem:
+      type: object
+      required: [type, description, quantity]
+      properties:
+        type:
+          type: string
+          enum: [hour, material]
+        description:
+          type: string
+        quantity:
+          type: integer
+
+    DeliveryNote:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        clientId:
+          type: string
+        projectId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryNoteItem'
+        isSigned:
+          type: boolean
+        signatureUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    NewDeliveryNote:
+      type: object
+      required: [clientId, projectId, items]
+      properties:
+        clientId:
+          type: string
+        projectId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryNoteItem'
+
+    # --- Storage ---
+    StorageItem:
+      type: object
+      properties:
+        _id:
+          type: string
+        originalName:
+          type: string
+        ipfs:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    NewStorageItem:
+      type: object
+      properties:
+        # multipart/form-data con file
+        dummy:
+          type: string
+
+    # --- Mail ---
+    MailRequest:
+      type: object
+      required: [from, to, subject, text]
+      properties:
+        from:
+          type: string
+          format: email
+        to:
+          type: string
+          format: email
+        subject:
+          type: string
+        text:
+          type: string
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Registrar nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Usuario registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Email ya existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login de usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Autenticación correcta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /client:
+    get:
+      tags: [Client]
+      summary: Obtener lista de clientes activos
+      responses:
+        '200':
+          description: Lista de clientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clients:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Client'
+    post:
+      tags: [Client]
+      summary: Crear nuevo cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewClient'
+      responses:
+        '200':
+          description: Cliente creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clientSaved:
+                    $ref: '#/components/schemas/Client'
+
+  /client/archive:
+    get:
+      tags: [Client]
+      summary: Obtener clientes archivados
+      responses:
+        '200':
+          description: Lista de clientes archivados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+
+  /client/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Client]
+      summary: Obtener cliente por ID
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+    put:
+      tags: [Client]
+      summary: Actualizar cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewClient'
+      responses:
+        '200':
+          description: Cliente actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+    delete:
+      tags: [Client]
+      summary: Borrar cliente (hard delete)
+      responses:
+        '200':
+          description: Cliente eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /client/logo/{id}:
+    patch:
+      tags: [Client]
+      summary: Actualizar logo de cliente
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Logo actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  client:
+                    $ref: '#/components/schemas/Client'
+
+  /client/archive/{id}:
+    delete:
+      tags: [Client]
+      summary: Archivar cliente (soft delete)
+      responses:
+        '200':
+          description: Cliente archivado correctamente
+
+  /client/restore/{id}:
+    patch:
+      tags: [Client]
+      summary: Restaurar cliente archivado
+      responses:
+        '200':
+          description: Cliente restaurado correctamente
+
+  # — Delivery Notes —
+  /deliverynotes:
+    post:
+      tags: [DeliveryNote]
+      summary: Crear albarán
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewDeliveryNote'
+      responses:
+        '200':
+          description: Albarán creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryNote'
+    get:
+      tags: [DeliveryNote]
+      summary: Listar albaranes
+      responses:
+        '200':
+          description: Lista de albaranes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliveryNote'
+
+  /deliverynotes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [DeliveryNote]
+      summary: Detalle de un albarán
+      responses:
+        '200':
+          description: Albarán detallado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryNote'
+
+  /deliverynotes/pdf/{id}:
+    get:
+      tags: [DeliveryNote]
+      summary: Descargar PDF de albarán
+      responses:
+        '200':
+          description: PDF generado (application/pdf)
+
+  /deliverynotes/sign/{id}:
+    post:
+      tags: [DeliveryNote]
+      summary: Firmar albarán
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Albarán firmado
+
+  # — Mail —
+  /mail:
+    post:
+      tags: [Mail]
+      summary: Enviar email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailRequest'
+      responses:
+        '200':
+          description: Email enviado
+
+  # — Projects —
+  /project:
+    get:
+      tags: [Project]
+      summary: Listar proyectos activos
+      responses:
+        '200':
+          description: Lista de proyectos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+    post:
+      tags: [Project]
+      summary: Crear proyecto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProject'
+      responses:
+        '200':
+          description: Proyecto creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  /project/archive:
+    get:
+      tags: [Project]
+      summary: Listar proyectos archivados
+      responses:
+        '200':
+          description: Lista de proyectos archivados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+
+  /project/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Project]
+      summary: Obtener proyecto por ID
+      responses:
+        '200':
+          description: Proyecto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    put:
+      tags: [Project]
+      summary: Actualizar proyecto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProject'
+      responses:
+        '200':
+          description: Proyecto actualizado
+    delete:
+      tags: [Project]
+      summary: Eliminar proyecto
+      responses:
+        '200':
+          description: Proyecto eliminado
+
+  /project/archive/{id}:
+    patch:
+      tags: [Project]
+      summary: Archivar proyecto
+      responses:
+        '200':
+          description: Proyecto archivado
+
+  /project/restore/{id}:
+    patch:
+      tags: [Project]
+      summary: Restaurar proyecto
+      responses:
+        '200':
+          description: Proyecto restaurado
+
+  # — Storage —
+  /storage:
+    get:
+      tags: [Storage]
+      summary: Listar items
+      responses:
+        '200':
+          description: Lista de items
+    post:
+      tags: [Storage]
+      summary: Crear item (subir archivo)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Item creado
+
+  /storage/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Storage]
+      summary: Obtener item por ID
+      responses:
+        '200':
+          description: Item recuperado
+    put:
+      tags: [Storage]
+      summary: Actualizar imagen de item
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Item actualizado
+    delete:
+      tags: [Storage]
+      summary: Eliminar item
+      responses:
+        '200':
+          description: Item eliminado
+
+  # — Users —
+  /users/me:
+    get:
+      tags: [User]
+      summary: Obtener datos del propio usuario
+      responses:
+        '200':
+          description: Datos de usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags: [User]
+      summary: Borrar cuenta propia (soft delete)
+      responses:
+        '200':
+          description: Usuario eliminado
+
+  /users/logo:
+    patch:
+      tags: [User]
+      summary: Actualizar logo de usuario
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Logo actualizado
+
+  /users:
+    get:
+      tags: [User]
+      summary: Listar todos los usuarios
+      responses:
+        '200':
+          description: Lista de usuarios
+
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [User]
+      summary: Obtener usuario por ID
+      responses:
+        '200':
+          description: Usuario encontrado
+    patch:
+      tags: [User]
+      summary: Actualizar usuario (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Usuario actualizado
+    delete:
+      tags: [User]
+      summary: Borrar usuario (admin)
+      responses:
+        '200':
+          description: Usuario eliminado
+
+  /users/role/{id}:
+    patch:
+      tags: [User]
+      summary: Actualizar rol de usuario (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+      responses:
+        '200':
+          description: Rol actualizado
+
+  /users/validate-email:
+    post:
+      tags: [User]
+      summary: Verificar email con código
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+      responses:
+        '200':
+          description: Email verificado
+
+  /users/onboarding/personal:
+    patch:
+      tags: [User]
+      summary: Completar datos personales
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                lastName:
+                  type: string
+                nif:
+                  type: string
+      responses:
+        '200':
+          description: Onboarding personal completado
+
+  /users/onboarding/company:
+    patch:
+      tags: [User]
+      summary: Completar datos de la compañía
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                companyName:
+                  type: string
+                cif:
+                  type: string
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Onboarding de compañía completado
+
+  /users/recover-password-code:
+    post:
+      tags: [User]
+      summary: Solicitar código de recuperación de contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                currentPassword:
+                  type: string
+      responses:
+        '200':
+          description: Código enviado
+
+  /users/change-password:
+    post:
+      tags: [User]
+      summary: Cambiar contraseña con código
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                recoveryCode:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Contraseña actualizada
+
+  /users/invite:
+    post:
+      tags: [User]
+      summary: Invitar nuevo usuario (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Invitación enviada
