@@ -80,7 +80,7 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
-// Método para ocultar información sensible
+//Método para ocultar información sensible
 UserSchema.methods.toJSON = function () {
   const userObject = this.toObject();
   delete userObject.password;

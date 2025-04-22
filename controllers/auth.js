@@ -61,7 +61,7 @@ const registerCtrl = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    return handleHttpError(res, "ERROR_REGISTER_USER");
+    return handleHttpError(res, "ERROR_REGISTER_USER", 500);
   }
 };
 
@@ -83,7 +83,7 @@ const loginCtrl = async (req, res) => {
     res.send({ token, user });
   } catch (err) {
     console.error(err);
-    return handleHttpError(res, "ERROR_LOGIN_USER");
+    return handleHttpError(res, "ERROR_LOGIN_USER", 500);
   }
 };
 

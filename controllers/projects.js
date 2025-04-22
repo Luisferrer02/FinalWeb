@@ -1,3 +1,4 @@
+//controllers/projects.js
 const Project = require("../models/nosql/projects");
 
 // Lista proyectos no archivados del usuario
