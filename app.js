@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const morganBody = require("morgan-body");
+const checkRol = require("./middleware/rol");
 const loggerStream = require("./utils/handleLogger");
 const dbConnect = require("./config/mongo");
 
@@ -27,23 +28,32 @@ morganBody(app, {
   stream: loggerStream,
 });
 
-// Rutas
+// Rutas principales
 app.use("/api", require("./routes"));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-// Rutas de prueba (solo para test)
-if (process.env.NODE_ENV === "test") {
-  app.get("/api/error-forzado", async (req, res, next) => {
-    return next(new Error("Error de prueba"));
-  });
-}
+// ... rutas de testing
+app.get("/api/error-forzado", (req, res, next) => {
+  next(new Error("Error de prueba"));
+});
 
-// 404
+app.get("/api/forbidden", (req, res, next) => {
+  const err = new Error("Acceso denegado");
+  err.status = 403;
+  next(err);
+});
+
+app.get("/api/error-no-message", (req, res, next) => {
+  throw new Error();
+});
+
 app.use((req, res, next) => {
   res.status(404).json({ error: "Endpoint no encontrado" });
 });
 
-// Error handler
+
+
+/* Middleware de errores global*/
 app.use((err, req, res, next) => {
   console.error("Error global:", err);
   res.status(err.status || 500).json({
