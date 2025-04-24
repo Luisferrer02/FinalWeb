@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador de Albaranes</title>
+</head>
+<body>
+  <h1>Login</h1>
+  <input id="email" placeholder="Email" />
+  <input id="password" placeholder="Password" type="password" />
+  <button onclick="login()">Iniciar sesión</button>
+
+  <h2>Crear Albarán</h2>
+  <input id="clientId" placeholder="ID del cliente" />
+  <input id="projectId" placeholder="ID del proyecto" />
+  <textarea id="itemsJson" rows="5" cols="40" placeholder='[{"type":"hour","description":"Instalación","quantity":2}]'></textarea>
+  <button onclick="createNote()">Crear Albarán</button>
+
+  <h3>Generar PDF</h3>
+  <input id="noteId" placeholder="ID del albarán" />
+  <button onclick="downloadPdf()">Descargar PDF</button>
+
+  <script>
+    const API = "http://localhost:3002/api";
+
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      fetch(`${API}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          alert("Login exitoso");
+        } else {
+          alert("Error de login");
+        }
+      });
+    }
+
+    function createNote() {
+      const token = localStorage.getItem("token");
+      const clientId = document.getElementById("clientId").value;
+      const projectId = document.getElementById("projectId").value;
+      const items = JSON.parse(document.getElementById("itemsJson").value);
+
+      fetch(`${API}/deliverynote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ clientId, projectId, items })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data._id) {
+          document.getElementById("noteId").value = data._id;
+          alert("Albarán creado con ID: " + data._id);
+        } else {
+          alert("Error creando albarán");
+        }
+      });
+    }
+
+    function downloadPdf() {
+      const token = localStorage.getItem("token");
+      const noteId = document.getElementById("noteId").value;
+      fetch(`${API}/deliverynote/pdf/${noteId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Error al generar PDF");
+        return res.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `deliverynote_${noteId}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(err => alert(err.message));
+    }
+  </script>
+</body>
+</html>

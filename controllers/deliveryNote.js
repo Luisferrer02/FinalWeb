@@ -100,18 +100,25 @@ const signDeliveryNote = async (req, res) => {
     const { id } = req.params;
     if (!req.file) return handleHttpError(res, "NO_FILE_UPLOADED", 400);
 
+    // Subir el archivo a Pinata
     const pinataResponse = await uploadToPinata(req.file.buffer, req.file.originalname);
-    const signatureUrl = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${pinataResponse.IpfsHash}`;
+    const fileUrl = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${pinataResponse.IpfsHash}`;
 
+    // Actualizar la delivery note con la URL del archivo subido
     const note = await DeliveryNote.findOneAndUpdate(
       { _id: id, userId: req.user._id },
-      { isSigned: true, signatureUrl },
+      { 
+        isSigned: true, 
+        signatureUrl: fileUrl, 
+        $push: { attachedFiles: { name: req.file.originalname, url: fileUrl } } // Agregar archivo a la lista de archivos adjuntos
+      },
       { new: true }
     );
     if (!note) return handleHttpError(res, "DELIVERYNOTE_NOT_FOUND", 404);
-    res.status(200).json({ message: "Albarán firmado correctamente", note });
+
+    res.status(200).json({ message: "Archivo subido y albarán firmado correctamente", note });
   } catch (error) {
-    console.error("Error al firmar albarán:", error);
+    console.error("Error al subir archivo y firmar albarán:", error);
     return handleHttpError(res, "ERROR_SIGN_DELIVERYNOTE", 500);
   }
 };
