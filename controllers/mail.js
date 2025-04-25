@@ -3,6 +3,8 @@ const { sendEmail } = require('../utils/handleMails');
 const { handleHttpError } = require('../utils/handleError');
 const { matchedData } = require('express-validator');
 
+//TODO Credenciales Email Google OAuth
+
 const send = async (req, res) => {
   try {
     const emailData = matchedData(req);
