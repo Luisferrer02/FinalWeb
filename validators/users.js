@@ -1,4 +1,4 @@
-const { check, validationResult } = require('express-validator');
+const { check, param, validationResult } = require('express-validator');
 const { validateResults } = require('../utils/handleValidator');
 
 // Validador para obtener un usuario por ID
@@ -9,13 +9,12 @@ const validatorGetUser = [
 
 // Validador para actualizar un usuario
 const validatorUpdateUser = [
-  check("id").exists().notEmpty().isMongoId().withMessage("ID no válido"),
-  check("name").optional().notEmpty().withMessage("El nombre es obligatorio si se proporciona"),
+  param("id").exists().notEmpty().isMongoId().withMessage("El ID del usuario no es válido"),  check("name").optional().notEmpty().withMessage("El nombre es obligatorio si se proporciona"),
   check("age").optional().isInt({ min: 1 }).withMessage("La edad debe ser un número entero positivo"),
   check("email").optional().isEmail().withMessage("El email no es válido"),
   check("password").optional().notEmpty().withMessage("La contraseña es obligatoria si se proporciona"),
-  check("role").exists().notEmpty().withMessage("El rol es obligatorio"),
-  (req, res, next) => validateResults(req, res, next),  // Aquí cubrimos los errores de actualización
+  check("role").optional().isIn(["user", "admin", "guest"]).withMessage("Rol inválido"),
+  (req, res, next) => validateResults(req, res, next),  
 ];
 
 // Validador para el registro de un usuario

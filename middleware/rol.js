@@ -1,26 +1,29 @@
 // middleware/rol.js
 const { handleHttpError } = require("../utils/handleError");
 
+/**
+ * Comprueba que el usuario autenticado tenga uno de los roles permitidos.
+ * @param {string[]} roles – lista de roles autorizados, p. ej. ["admin","user"]
+ */
 const checkRol = (roles) => (req, res, next) => {
   try {
-    const user = req.headers.user ? JSON.parse(req.headers.user) : null;
-
+    // authMiddleware debe haber inyectado req.user
+    const user = req.user;
     if (!user) {
-      handleHttpError(res, "ERROR_PERMISSIONS", 403); // Si no hay un usuario, devolvemos un error
-      return;
+      // No hay sesión válida
+      return handleHttpError(res, "ERROR_PERMISSIONS", 403);
     }
 
-    const userRol = user.role; // Obtenemos el rol del usuario
-    const checkValueRol = roles.includes(userRol); // Verificamos si el rol está permitido
-
-    if (!checkValueRol) {
-      handleHttpError(res, "NOT_ALLOWED", 403); // Si el rol no está permitido, devolvemos un error
-      return;
+    // Comprueba si el rol del usuario está en la lista de permitidos
+    if (!roles.includes(user.role)) {
+      return handleHttpError(res, "NOT_ALLOWED", 403);
     }
 
-    next(); // Si todo está bien, continuamos al siguiente middleware
+    // Todo OK: continúa
+    next();
   } catch (err) {
-    handleHttpError(res, "ERROR_PERMISSIONS", 403); // En caso de error inesperado, devolvemos un error
+    console.error("Error checking role:", err);
+    return handleHttpError(res, "ERROR_PERMISSIONS", 403);
   }
 };
 

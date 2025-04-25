@@ -13,7 +13,7 @@ describe('middleware/rol', () => {
   afterEach(() => jest.clearAllMocks());
 
   test('sin user → ERROR_PERMISSIONS', () => {
-    const req = { headers: {} };
+    const req = { }; 
     const res = makeRes();
     const next = jest.fn();
     checkRol(['admin'])(req, res, next);
@@ -23,7 +23,7 @@ describe('middleware/rol', () => {
   });
 
   test('rol no permitido → NOT_ALLOWED', () => {
-    const req = { headers: { user: JSON.stringify({ role: 'user' }) } };
+    const req = { user: { role: 'user' } }; 
     const res = makeRes();
     const next = jest.fn();
     checkRol(['admin'])(req, res, next);
@@ -33,19 +33,11 @@ describe('middleware/rol', () => {
   });
 
   test('rol permitido → llama a next()', () => {
-    const req = { headers: { user: JSON.stringify({ role: 'admin' }) } };
+    const req = { user: { role: 'admin' } }; 
     const res = makeRes();
     const next = jest.fn();
     checkRol(['admin'])(req, res, next);
     expect(next).toHaveBeenCalled();
   });
 
-  test('parseo JSON inválido lanza ERROR_PERMISSIONS', () => {
-    const req = { headers: { user: 'no-es-un-json' } };
-    const res = makeRes();
-    const next = jest.fn();
-    checkRol(['admin'])(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ error: 'ERROR_PERMISSIONS' });
-  });
 });
