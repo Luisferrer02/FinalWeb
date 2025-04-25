@@ -5,7 +5,7 @@
 
 @clientId = 680b563b152f05f6a21603ae
 
-@deliveryNoteId = 680b58c2152f05f6a21603dd
+@deliveryNoteId = 680b61c0a39403a3763f4ef1
 
 
 
@@ -21,7 +21,7 @@ Authorization: Bearer {{tokenFromLogin}}
   "items": [
     {
       "type": "hour",
-      "description": "Revisión sistema eléctrico",
+      "description": "Revisión sistema calefaccion",
       "quantity": 4
     },
     {
@@ -47,17 +47,27 @@ Authorization: Bearer {{tokenFromLogin}}
 GET http://localhost:3002/api/deliverynote/pdf/{{deliveryNoteId}}
 Authorization: Bearer {{tokenFromLogin}}
 
-###
-
-### ✍️ Firmar albarán
-POST http://localhost:3002/api/deliverynote/sign/{{deliveryNoteId}}
+### Actualizar un albarán (solo si no está firmado)
+PUT {{baseUrl}}/api/deliverynote/{{deliveryNoteId}}
 Authorization: Bearer {{tokenFromLogin}}
-Content-Type: multipart/form-data; boundary=boundary
+Content-Type: application/json
 
---boundary
+{
+  "items": [
+    { "type": "hour", "description": "Horas modificadas", "quantity": 3 },
+    { "type": "material", "description": "Nuevo material", "quantity": 20 }
+  ]
+}
+
+### Firmar un albarán (subida de imagen)
+POST {{baseUrl}}/api/deliverynote/sign/{{deliveryNoteId}}
+Authorization: Bearer {{tokenFromLogin}}
+Content-Type: multipart/form-data; boundary=MyBoundary
+
+--MyBoundary
 Content-Disposition: form-data; name="image"; filename="firma.png"
 Content-Type: image/png
 
 < ./firma.png
---boundary--
+--MyBoundary--
 

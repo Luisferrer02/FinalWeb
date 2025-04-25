@@ -9,6 +9,7 @@ const {
   createDeliveryNote,
   getDeliveryNotes,
   getDeliveryNote,
+  updateDeliveryNote,
   generateDeliveryNotePdf,
   signDeliveryNote
 } = require("../controllers/deliveryNote");
@@ -32,5 +33,7 @@ router.get("/pdf/:id", authMiddleware, validatorDeliveryNoteId, generateDelivery
 
 // Firmar albarán (subir imagen de firma)
 router.post("/sign/:id", authMiddleware, validatorDeliveryNoteId, uploadMiddleWareMemory.single("image"), signDeliveryNote);
+
+router.put("/:id", authMiddleware, validatorDeliveryNoteId, updateDeliveryNote);
 
 module.exports = router;

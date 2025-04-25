@@ -2,6 +2,7 @@
 const DeliveryNote = require("../models/nosql/deliveryNote");
 const { handleHttpError } = require("../utils/handleError");
 const { uploadToPinata } = require("../utils/handleUploadIPFS");
+const { PassThrough } = require("stream");
 const PDFDocument = require("pdfkit");
 
 /**
@@ -95,30 +96,80 @@ const getDeliveryNote = async (req, res) => {
   }
 };
 
+const updateDeliveryNote = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existingNote = await DeliveryNote.findById(id);
+    if (!existingNote) return handleHttpError(res, "DELIVERYNOTE_NOT_FOUND", 404);
+
+    if (existingNote.isSigned) {
+      return handleHttpError(res, "DELIVERYNOTE_ALREADY_SIGNED", 400);
+    }
+
+    const updatedNote = await DeliveryNote.findOneAndUpdate(
+      { _id: id, userId: req.user._id },
+      req.body,
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Albarán actualizado correctamente", note: updatedNote });
+  } catch (error) {
+    console.error("Error al actualizar el albarán:", error);
+    return handleHttpError(res, "ERROR_UPDATE_DELIVERYNOTE", 500);
+  }
+};
+
+
 const signDeliveryNote = async (req, res) => {
   try {
     const { id } = req.params;
     if (!req.file) return handleHttpError(res, "NO_FILE_UPLOADED", 400);
 
-    // Subir el archivo a Pinata
-    const pinataResponse = await uploadToPinata(req.file.buffer, req.file.originalname);
-    const fileUrl = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${pinataResponse.IpfsHash}`;
+    const pinataSignature = await uploadToPinata(req.file.buffer, req.file.originalname);
+    const signatureUrl = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${pinataSignature.IpfsHash}`;
 
-    // Actualizar la delivery note con la URL del archivo subido
     const note = await DeliveryNote.findOneAndUpdate(
       { _id: id, userId: req.user._id },
-      { 
-        isSigned: true, 
-        signatureUrl: fileUrl, 
-        $push: { attachedFiles: { name: req.file.originalname, url: fileUrl } } // Agregar archivo a la lista de archivos adjuntos
+      {
+        isSigned: true,
+        signatureUrl,
+        $push: {
+          attachedFiles: {
+            name: req.file.originalname,
+            url: signatureUrl
+          }
+        }
       },
       { new: true }
-    );
+    ).populate("userId", "name email")
+     .populate("clientId", "name cif address logo")
+     .populate("projectId", "name description");
+
     if (!note) return handleHttpError(res, "DELIVERYNOTE_NOT_FOUND", 404);
 
-    res.status(200).json({ message: "Albarán firmado correctamente", note });
+    // Generar PDF y subirlo a IPFS
+    const pdfStream = new PDFDocument();
+    const passthrough = new PassThrough();
+    const chunks = [];
+
+    passthrough.on("data", chunk => chunks.push(chunk));
+    passthrough.on("end", async () => {
+      const finalBuffer = Buffer.concat(chunks);
+      const pinataPdf = await uploadToPinata(finalBuffer, `albaran_${id}.pdf`);
+      const pdfUrl = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${pinataPdf.IpfsHash}`;
+
+      note.pdfUrl = pdfUrl;
+      await note.save();
+
+      return res.status(200).json({ message: "Albarán firmado correctamente", note });
+    });
+
+    pdfStream.pipe(passthrough);
+    buildPdfTemplate(pdfStream, note);
+    pdfStream.end();
   } catch (error) {
-    console.error("Error al subir archivo y firmar albarán:", error);
+    console.error("Error al firmar albarán y generar PDF:", error);
     return handleHttpError(res, "ERROR_SIGN_DELIVERYNOTE", 500);
   }
 };
@@ -127,6 +178,7 @@ module.exports = {
   buildPdfTemplate,
   createDeliveryNote,
   getDeliveryNotes,
+  updateDeliveryNote,
   getDeliveryNote,
   generateDeliveryNotePdf,
   signDeliveryNote,

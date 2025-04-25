@@ -259,21 +259,32 @@ describe("DeliveryNote API", () => {
 
     test("POST /api/deliverynote/sign/:id - Handles errors signing delivery note", async () => {
       const noteId = await createTestDeliveryNote();
+    
+      // 👇 Mock correcto del primer paso: uploadToPinata
+      jest.spyOn(uploadModule, "uploadToPinata").mockResolvedValue({
+        IpfsHash: "fake-signature-hash"
+      });
+    
+      // 👇 Luego mockeamos que la actualización falle
       const updateSpy = jest
         .spyOn(DeliveryNote, "findOneAndUpdate")
-        .mockRejectedValueOnce(new Error("DB fail"));
-
+        .mockImplementationOnce(() => {
+          throw new Error("DB fail");
+        });
+    
       const imagePath = path.join(__dirname, "firma.png");
+    
       const res = await request(app)
         .post(`/api/deliverynote/sign/${noteId}`)
         .set("Authorization", `Bearer ${token}`)
         .attach("image", imagePath);
-
+    
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "ERROR_SIGN_DELIVERYNOTE");
-
+    
       updateSpy.mockRestore();
     });
+    
 
     test("GET /api/deliverynote/pdf/:id - Returns 404 for non-existent note", async () => {
       const nonExistentId = new mongoose.Types.ObjectId();
@@ -334,6 +345,68 @@ describe("DeliveryNote API", () => {
 
       findSpy.mockRestore();
     });
+
+    test("PUT /api/deliverynote/:id - Updates an unsigned delivery note", async () => {
+      const noteId = await createTestDeliveryNote();
+    
+      const updateData = {
+        items: [
+          { type: "hour", description: "Horas modificadas", quantity: 3 },
+          { type: "material", description: "Nuevo material", quantity: 20 }
+        ]
+      };
+    
+      const res = await request(app)
+        .put(`/api/deliverynote/${noteId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(updateData);
+    
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty("note._id", noteId);
+      expect(res.body.note.items.length).toBe(2);
+      expect(res.body.note.items[0].description).toBe("Horas modificadas");
+    });
+    
+    test("PUT /api/deliverynote/:id - Cannot update signed delivery note", async () => {
+      const noteId = await createTestDeliveryNote();
+    
+      // Mockear firma
+      const imagePath = path.join(__dirname, "firma.png");
+      jest.spyOn(uploadModule, "uploadToPinata").mockResolvedValue({ IpfsHash: "signedhash" });
+    
+      await request(app)
+        .post(`/api/deliverynote/sign/${noteId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .attach("image", imagePath);
+    
+      const res = await request(app)
+        .put(`/api/deliverynote/${noteId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          items: [{ type: "hour", description: "Cambios no permitidos", quantity: 1 }]
+        });
+    
+      expect(res.statusCode).toBe(400); // <-- este era el fallo
+      expect(res.body).toEqual({ error: "DELIVERYNOTE_ALREADY_SIGNED" });
+    });
+    
+
+
+    test("PUT /api/deliverynote/:id - Returns 404 if delivery note does not exist", async () => {
+      const fakeId = new mongoose.Types.ObjectId();
+    
+      const res = await request(app)
+        .put(`/api/deliverynote/${fakeId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          items: [{ type: "hour", description: "Cambio", quantity: 1 }]
+        });
+    
+      expect(res.statusCode).toBe(404);
+      expect(res.body).toEqual({ error: "DELIVERYNOTE_NOT_FOUND" });
+    });
+    
+
   });
 
   describe("DeliveryNote sign error branch", () => {
