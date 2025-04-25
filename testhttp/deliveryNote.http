@@ -1,0 +1,63 @@
+@baseUrl = http://localhost:3002
+@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
+
+@projectId = 680b5891152f05f6a21603da
+
+@clientId = 680b563b152f05f6a21603ae
+
+@deliveryNoteId = 680b58c2152f05f6a21603dd
+
+
+
+### Albaranes:
+
+POST http://localhost:3002/api/deliveryNote
+Content-Type: application/json
+Authorization: Bearer {{tokenFromLogin}}
+
+{
+  "clientId": "{{clientId}}",
+  "projectId": "{{projectId}}",
+  "items": [
+    {
+      "type": "hour",
+      "description": "Revisión sistema eléctrico",
+      "quantity": 4
+    },
+    {
+      "type": "material",
+      "description": "Cableado Cat6",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### 📥 Obtener lista de albaranes
+GET http://localhost:3002/api/deliverynote
+Authorization: Bearer {{tokenFromLogin}}
+
+###
+
+GET http://localhost:3002/api/deliverynote/{{deliveryNoteId}}
+Authorization: Bearer {{tokenFromLogin}}
+
+### 📄 Generar PDF de un albarán
+GET http://localhost:3002/api/deliverynote/pdf/{{deliveryNoteId}}
+Authorization: Bearer {{tokenFromLogin}}
+
+###
+
+### ✍️ Firmar albarán
+POST http://localhost:3002/api/deliverynote/sign/{{deliveryNoteId}}
+Authorization: Bearer {{tokenFromLogin}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="image"; filename="firma.png"
+Content-Type: image/png
+
+< ./firma.png
+--boundary--
+

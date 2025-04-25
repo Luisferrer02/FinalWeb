@@ -1,0 +1,82 @@
+@baseUrl = http://localhost:3002
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
+
+
+@clientId = 680b563b152f05f6a21603ae
+
+POST {{baseUrl}}/api/clients
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Mi Cliente",
+  "cif": "B12345678",
+  "address": {
+    "street": "Calle Ejemplo",
+    "number": 42,
+    "postal": 28001,
+    "city": "Madrid",
+    "province": "Madrid"
+  }
+}
+
+###
+
+GET {{baseUrl}}/api/clients
+Authorization: Bearer {{token}}
+
+###
+
+GET {{baseUrl}}/api/clients/archive
+Authorization: Bearer {{token}}
+
+###
+
+GET {{baseUrl}}/api/clients/{{clientId}}
+Authorization: Bearer {{token}}
+
+###
+
+PUT {{baseUrl}}/api/clients/{{clientId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Cliente Actualizado",
+  "address": {
+    "street": "Nueva Calle",
+    "number": 99,
+    "postal": 46001,
+    "city": "Valencia",
+    "province": "Valencia"
+  }
+}
+
+###
+
+DELETE {{baseUrl}}/api/clients/{{clientId}}
+Authorization: Bearer {{token}}
+
+###
+
+DELETE {{baseUrl}}/api/clients/archive/{{clientId}}
+Authorization: Bearer {{token}}
+
+###
+
+PATCH {{baseUrl}}/api/clients/restore/{{clientId}}
+Authorization: Bearer {{token}}
+
+###
+
+PATCH {{baseUrl}}/api/clients/logo/{{clientId}}
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=MyBoundary
+
+--MyBoundary
+Content-Disposition: form-data; name="image"; filename="logo.png"
+Content-Type: image/png
+
+< ./u-tad.png
+--MyBoundary--
+

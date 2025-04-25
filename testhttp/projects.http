@@ -1,0 +1,61 @@
+@baseUrl = http://localhost:3002
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
+
+@projectId = 680b5891152f05f6a21603da
+
+@clientId = 680b563b152f05f6a21603ae
+
+
+POST {{baseUrl}}/api/projects
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Nuevo Proyecto",
+  "clientId": "{{clientId}}",
+  "description": "Este es un proyecto de prueba"
+}
+
+###
+
+GET {{baseUrl}}/api/projects
+Authorization: Bearer {{token}}
+
+###
+
+GET {{baseUrl}}/api/projects/archive
+Authorization: Bearer {{token}}
+
+###
+
+GET {{baseUrl}}/api/projects/{{projectId}}
+Authorization: Bearer {{token}}
+
+###
+
+PUT {{baseUrl}}/api/projects/{{projectId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Proyecto Modificado",
+  "description": "Descripción actualizada"
+}
+
+###
+
+DELETE {{baseUrl}}/api/projects/{{projectId}}
+Authorization: Bearer {{token}}
+
+###
+
+PATCH {{baseUrl}}/api/projects/archive/{{projectId}}
+Authorization: Bearer {{token}}
+
+
+###
+
+PATCH {{baseUrl}}/api/projects/restore/{{projectId}}
+Authorization: Bearer {{token}}
+
+###

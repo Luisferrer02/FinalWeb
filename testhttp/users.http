@@ -1,86 +1,122 @@
 @baseUrl = http://localhost:3002
-
-### 1. Registro de usuario
-POST {{baseUrl}}/api/auth/register HTTP/1.1
-Content-Type: application/json
-
-{
-  "name": "Luis",
-  "age": 25,
-  "email": "luisferrer2002@gmail.com",
-  "password": "Password123"
-}
-
-###
-@tokenFromRegister = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBhNjZhMDU2NDI4MWZiZDcyNmQzMGIiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTUxMjA5NiwiZXhwIjoxNzQ1NTk4NDk2fQ.WIF_8clVH8CA55Mmaf8SzgRyV5zvhGtccjevfbjdiss
-
-### 2. Validación de email (Código de verificación)
-POST {{baseUrl}}/api/users/validate-email HTTP/1.1
-Content-Type: application/json
-Authorization: Bearer {{tokenFromRegister}}
-
-{
-  "code": "560464"
-}
-
-### 3. Login de usuario
-POST {{baseUrl}}/api/auth/login HTTP/1.1
-Content-Type: application/json
-
-{
-  "email": "luisferrer2002@gmail.com",
-  "password": "Password123"
-}
-
-###
-@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBhNjZhMDU2NDI4MWZiZDcyNmQzMGIiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTUxMjIyMywiZXhwIjoxNzQ1NTk4NjIzfQ.baOcwWs5o8IAZiaTnNPoBJL-9CmPfG3yi_umkVP6dR0
-@userId = 680a66a0564281fbd726d30b
-
-### ✅ Crear albarán
-POST http://localhost:3002/api/deliveryNote
-Content-Type: application/json
-Authorization: Bearer {{tokenFromLogin}}
-
-{
-  "clientId": "661f1f00c1c63f34d6a22222",
-  "projectId": "661f1f99c1c63f34d6a33333",
-  "items": [
-    {
-      "type": "hour",
-      "description": "Revisión sistema eléctrico",
-      "quantity": 4
-    },
-    {
-      "type": "material",
-      "description": "Cableado Cat6",
-      "quantity": 2
-    }
-  ]
-}
+@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
+@userId = 6807be37efd9987f8e2da1b9
 
 ###
 
-### 📥 Obtener lista de albaranes
-GET http://localhost:3002/api/deliverynote
+GET {{baseUrl}}/api/users/me
 Authorization: Bearer {{tokenFromLogin}}
 
 ###
 
-### 📄 Generar PDF de un albarán
-GET http://localhost:3002/api/deliverynote/pdf/680a676e564281fbd726d310
+DELETE {{baseUrl}}/api/users/me
 Authorization: Bearer {{tokenFromLogin}}
 
 ###
 
-### ✍️ Firmar albarán
-POST http://localhost:3002/api/deliverynote/sign/680a676e564281fbd726d310
+DELETE {{baseUrl}}/api/users/me?soft=false
 Authorization: Bearer {{tokenFromLogin}}
-Content-Type: multipart/form-data; boundary=boundary
 
---boundary
+###
+
+PATCH {{baseUrl}}/api/users/logo
+Authorization: Bearer {{tokenFromLogin}}
+Content-Type: multipart/form-data; boundary=MyBoundary
+
+--MyBoundary
 Content-Disposition: form-data; name="image"; filename="firma.png"
 Content-Type: image/png
 
 < ./firma.png
---boundary--
+--MyBoundary--
 
+###
+
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{tokenFromLogin}}
+
+###
+
+GET {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{tokenFromLogin}}
+
+###
+
+PATCH {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{tokenFromLogin}}
+Content-Type: application/json
+
+{
+  "name": "Luis Actualizado"
+}
+
+###
+
+DELETE {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{tokenFromLogin}}
+
+###
+
+PATCH {{baseUrl}}/api/users/role/{{userId}}
+Authorization: Bearer {{tokenFromLogin}}
+Content-Type: application/json
+
+{
+  "role": "admin"
+}
+
+
+###
+
+PATCH {{baseUrl}}/api/users/onboarding/personal
+Authorization: Bearer {{tokenFromLogin}}
+Content-Type: application/json
+
+{
+  "name": "Luis",
+  "lastName": "Ferrer",
+  "nif": "12345678Z"
+}
+
+###
+
+PATCH {{baseUrl}}/api/users/onboarding/company
+Authorization: Bearer {{tokenFromLogin}}
+Content-Type: application/json
+
+{
+  "companyName": "Mi Empresa",
+  "cif": "B12345678",
+  "address": "Calle Falsa 123"
+}
+
+###
+
+POST {{baseUrl}}/api/users/recover-password-code
+Content-Type: application/json
+
+{
+  "email": "luisferrer2002@gmail.com",
+  "currentPassword": "Password123"
+}
+
+###
+
+POST {{baseUrl}}/api/users/change-password
+Content-Type: application/json
+
+{
+  "email": "luisferrer2002@gmail.com",
+  "recoveryCode": "335940",
+  "newPassword": "NewPassword123"
+}
+
+###
+
+POST {{baseUrl}}/api/users/invite
+Authorization: Bearer {{tokenFromLogin}}
+Content-Type: application/json
+
+{
+  "email": "nuevoinvitado@example.com"
+}
