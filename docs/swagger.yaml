@@ -459,7 +459,7 @@ paths:
           description: Cliente restaurado correctamente
 
   # — Delivery Notes —
-  /deliverynotes:
+  /deliverynote:
     post:
       tags: [DeliveryNote]
       summary: Crear albarán
@@ -489,7 +489,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/DeliveryNote'
 
-  /deliverynotes/{id}:
+  /deliverynote/{id}:
     parameters:
       - name: id
         in: path
@@ -507,7 +507,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DeliveryNote'
 
-  /deliverynotes/pdf/{id}:
+  /deliverynote/pdf/{id}:
     get:
       tags: [DeliveryNote]
       summary: Descargar PDF de albarán
@@ -515,7 +515,7 @@ paths:
         '200':
           description: PDF generado (application/pdf)
 
-  /deliverynotes/sign/{id}:
+  /deliverynote/sign/{id}:
     post:
       tags: [DeliveryNote]
       summary: Firmar albarán
