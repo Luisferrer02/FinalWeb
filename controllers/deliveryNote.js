@@ -116,7 +116,7 @@ const signDeliveryNote = async (req, res) => {
     );
     if (!note) return handleHttpError(res, "DELIVERYNOTE_NOT_FOUND", 404);
 
-    res.status(200).json({ message: "Archivo subido y albarán firmado correctamente", note });
+    res.status(200).json({ message: "Albarán firmado correctamente", note });
   } catch (error) {
     console.error("Error al subir archivo y firmar albarán:", error);
     return handleHttpError(res, "ERROR_SIGN_DELIVERYNOTE", 500);

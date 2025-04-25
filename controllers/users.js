@@ -85,7 +85,7 @@ const getUsers = async (req, res) => {
       user.passwordRecoveryCode = recoveryCode;
       await user.save();
       
-      console.log(`Código de recuperación generado para ${email}: ${recoveryCode}`);
+      console.log(`Código de recuperación generado para ${email}`);
       
       const emailOptions = {
         from: from || process.env.EMAIL,
