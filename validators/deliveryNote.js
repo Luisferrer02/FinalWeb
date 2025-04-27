@@ -2,6 +2,7 @@
 const { check } = require("express-validator");
 const { validateResults } = require("../utils/handleValidator");
 
+// Validador para crear un albarán
 const validatorCreateDeliveryNote = [
   check("clientId")
     .exists().withMessage("El clientId es obligatorio")
@@ -26,6 +27,7 @@ const validatorCreateDeliveryNote = [
   (req, res, next) => validateResults(req, res, next)
 ];
 
+// Validador para obtener un albarán por ID
 const validatorDeliveryNoteId = [
   check("id")
     .exists().withMessage("El ID es obligatorio")

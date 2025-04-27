@@ -3,8 +3,7 @@
 const { check } = require("express-validator")
 const { validateResults } = require("../utils/handleValidator");
 
-//No necesita validatorCreateItem porque ya está haciendo uso de Multer
-
+// Validador para obtener un elemento por ID
 const validatorGetItem = [
     check("id").exists().notEmpty().isMongoId(),
     (req, res, next) => {

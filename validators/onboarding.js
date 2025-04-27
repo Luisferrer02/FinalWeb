@@ -3,6 +3,7 @@ const { check } = require("express-validator");
 const { validateResults } = require("../utils/handleValidator");
 const runValidateResults = (req, res, next) => validateResults(req, res, next);
 
+// Validador para el onboarding de la empresa
 const validatorOnboardingCompany = [
   check("companyName").exists().notEmpty(),
   check("cif").exists().notEmpty(),
@@ -10,6 +11,7 @@ const validatorOnboardingCompany = [
   runValidateResults,
 ];
 
+// Validador para el onboarding del usuario
 const validatorOnboardingUser = [
   check("name").exists().notEmpty(),
   check("lastName").exists().notEmpty(),

@@ -2,6 +2,7 @@
 const { check } = require("express-validator");
 const { validateResults } = require("../utils/handleValidator");
 
+// Validador para crear un proyecto
 const validatorCreateProject = [
   check("name")
     .exists().withMessage("El nombre del proyecto es obligatorio")
@@ -16,6 +17,7 @@ const validatorCreateProject = [
   (req, res, next) => validateResults(req, res, next)
 ];
 
+// Validador para obtener un proyecto por ID
 const validatorProjectId = [
   check("id")
     .exists().withMessage("El ID del proyecto es obligatorio")
@@ -24,6 +26,7 @@ const validatorProjectId = [
   (req, res, next) => validateResults(req, res, next)
 ];
 
+// Validador para actualizar un proyecto
 const validatorUpdateProject = [
   check("id")
     .exists().withMessage("El ID del proyecto es obligatorio")
