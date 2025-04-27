@@ -6,13 +6,12 @@ Content-Type: application/json
 
 {
   "name": "Luis",
-  "age": 25,
   "email": "luisferrer2002@gmail.com",
   "password": "Password123"
 }
 
 ###
-@tokenFromRegister = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBhNjZhMDU2NDI4MWZiZDcyNmQzMGIiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTUxMjA5NiwiZXhwIjoxNzQ1NTk4NDk2fQ.WIF_8clVH8CA55Mmaf8SzgRyV5zvhGtccjevfbjdiss
+@tokenFromRegister = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBlYTVjMzQyMzlkYjI3OTk0OGU1N2YiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTc5MDQwMywiZXhwIjoxNzQ1ODc2ODAzfQ.WW8RkZcFiBARHF9w9LZfah0ObOKozxxSNIG61sTqMrM
 
 ### 2. Validación de email (Código de verificación)
 POST {{baseUrl}}/api/users/validate-email HTTP/1.1
@@ -20,7 +19,7 @@ Content-Type: application/json
 Authorization: Bearer {{tokenFromRegister}}
 
 {
-  "code": "560464"
+  "code": "968217"
 }
 
 ### 3. Login de usuario
@@ -33,6 +32,6 @@ Content-Type: application/json
 }
 
 ###
-@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
-@userId = 6807be37efd9987f8e2da1b9
+@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBlYTVjMzQyMzlkYjI3OTk0OGU1N2YiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTc5MDc1NywiZXhwIjoxNzQ1ODc3MTU3fQ.HUHwfiAByeFt24V2pDUTBj-jkMjJpG146hRs5D6gkwQ
+@userId = 680ea5c34239db279948e57f
 

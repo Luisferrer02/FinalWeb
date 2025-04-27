@@ -1,23 +1,25 @@
 @baseUrl = http://localhost:3002
-@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
-@userId = 6807be37efd9987f8e2da1b9
+@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBlYTVjMzQyMzlkYjI3OTk0OGU1N2YiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTc5MDc1NywiZXhwIjoxNzQ1ODc3MTU3fQ.HUHwfiAByeFt24V2pDUTBj-jkMjJpG146hRs5D6gkwQ
+@userId = 680ea5c34239db279948e57f
 
-###
+
+
+### 1. Devuelve el usuario logueado
 
 GET {{baseUrl}}/api/users/me
 Authorization: Bearer {{tokenFromLogin}}
 
-###
+### 2. Eliminar el usuario logueado
 
 DELETE {{baseUrl}}/api/users/me
 Authorization: Bearer {{tokenFromLogin}}
 
-###
+### 3. Eliminar el usuario logueado (soft delete)
 
 DELETE {{baseUrl}}/api/users/me?soft=false
 Authorization: Bearer {{tokenFromLogin}}
 
-###
+### 4. Actualizar logo del usuario logueado
 
 PATCH {{baseUrl}}/api/users/logo
 Authorization: Bearer {{tokenFromLogin}}
@@ -30,17 +32,17 @@ Content-Type: image/png
 < ./firma.png
 --MyBoundary--
 
-###
+### 6. Devuele todos los usuarios (Solo admin)
 
 GET {{baseUrl}}/api/users
 Authorization: Bearer {{tokenFromLogin}}
 
-###
+### 7. Devuelve un usuario por ID (Solo admin)
 
 GET {{baseUrl}}/api/users/{{userId}}
 Authorization: Bearer {{tokenFromLogin}}
 
-###
+### 8. Actualiza un usuario por ID (Solo admin)
 
 PATCH {{baseUrl}}/api/users/{{userId}}
 Authorization: Bearer {{tokenFromLogin}}
@@ -50,23 +52,23 @@ Content-Type: application/json
   "name": "Luis Actualizado"
 }
 
-###
+### 9. Elimina un usuario por ID (Solo admin)
 
 DELETE {{baseUrl}}/api/users/{{userId}}
 Authorization: Bearer {{tokenFromLogin}}
 
-###
+### 10. Actualiza el rol de un usuario por ID (Solo admin)
 
 PATCH {{baseUrl}}/api/users/role/{{userId}}
 Authorization: Bearer {{tokenFromLogin}}
 Content-Type: application/json
 
 {
-  "role": "admin"
+  "role": "user"
 }
 
 
-###
+### 11. Realiza el onboarding personal del usuario logueado
 
 PATCH {{baseUrl}}/api/users/onboarding/personal
 Authorization: Bearer {{tokenFromLogin}}
@@ -78,7 +80,7 @@ Content-Type: application/json
   "nif": "12345678Z"
 }
 
-###
+### 12. Realiza el onboarding de la empresa del usuario logueado
 
 PATCH {{baseUrl}}/api/users/onboarding/company
 Authorization: Bearer {{tokenFromLogin}}
@@ -90,33 +92,45 @@ Content-Type: application/json
   "address": "Calle Falsa 123"
 }
 
-###
+### 13. Envia el codigo de recuperacion de contraseña al email
 
 POST {{baseUrl}}/api/users/recover-password-code
 Content-Type: application/json
 
 {
-  "email": "luisferrer2002@gmail.com",
-  "currentPassword": "Password123"
+  "email": "luisferrer2002@gmail.com"
 }
 
-###
+### 14. Cambia la contraseña usando el email y codigo enviado
 
 POST {{baseUrl}}/api/users/change-password
 Content-Type: application/json
 
 {
   "email": "luisferrer2002@gmail.com",
-  "recoveryCode": "335940",
+  "recoveryCode": "840869",
   "newPassword": "NewPassword123"
 }
 
-###
+### 15. Invitar usuario a la aplicacion (Solo admin)
 
 POST {{baseUrl}}/api/users/invite
 Authorization: Bearer {{tokenFromLogin}}
 Content-Type: application/json
 
 {
-  "email": "nuevoinvitado@example.com"
+  "email": "luisferrer2002+testWeb2@gmail.com"
+}
+
+### 16. Aceptar invitacion a la aplicacion
+
+POST {{baseUrl}}/api/users/accept-invite
+Content-Type: application/json
+
+{
+  "token": "335006b2-6050-4397-8909-0afe04b4f78c",
+  "name": "Nuevo",
+  "lastName": "Usuario",
+  "email": "luisferrer2002+testWeb2@gmail.com",
+  "password": "Password1234"
 }
