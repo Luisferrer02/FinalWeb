@@ -41,18 +41,45 @@ const generateDeliveryNotePdf = async (req, res) => {
       .populate("projectId", "name description");
     if (!note) return handleHttpError(res, "DELIVERYNOTE_NOT_FOUND", 404);
 
+    // 1. Creamos el documento
     const doc = new PDFDocument();
 
+    // 2. Cabeceras HTTP
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename=deliverynote_${id}.pdf`);
-    
-    // Se invoca la función externa para crear el template del PDF
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=deliverynote_${id}.pdf`
+    );
+
+    // 3. Manejador de errores en el stream PDF. Si pdfkit lanza un error al escribir el PDF, lo capturamos, registramos y devolvemos un 500 
+    doc.on("error", (err) => {
+      console.error("PDF stream error:", err);
+      // Intentamos responder con error si aún no hemos enviado nada
+      if (!res.headersSent) {
+        return handleHttpError(res, "ERROR_GENERATE_PDF", 500);
+      }
+      // Si ya se había empezado a enviar, simplemente cerramos
+      res.destroy(err);
+    });
+
+    // 4. Manejador de errores en la respuesta HTTP
+    res.on("error", (err) => {
+      console.error("Response stream error:", err);
+      // Cancelamos la generación
+      doc.destroy(err);
+    });
+
+    // 5. Enlazamos el PDF con la respuesta
+    doc.pipe(res);
+
+    // 6. Generamos el contenido
     buildPdfTemplate(doc, note);
 
-    doc.pipe(res);
+    // 7. Finalizamos
     doc.end();
   } catch (error) {
     console.error("Error al generar PDF:", error);
+    // Si ocurre antes de crear el PDF
     return handleHttpError(res, "ERROR_GENERATE_PDF", 500);
   }
 };

@@ -23,7 +23,6 @@ describe("Auth Endpoints", () => {
 
   const userData = {
     name: "Auth Test User",
-    age: 30,
     email: "authtest@example.com",
     password: "password123"
   };
@@ -47,7 +46,6 @@ describe("Auth Endpoints", () => {
   test("POST /api/auth/register - Falla el envío de email y entra en catch del then", async () => {
     const userWithEmail = {
       name: "User Fail Email",
-      age: 30,
       email: "fail-email@example.com",
       password: "password123"
     };
@@ -150,7 +148,6 @@ describe("Auth Endpoints", () => {
 
     const user = {
       name: "Broken User",
-      age: 25,
       email: "broken@example.com",
       password: "password123"
     };

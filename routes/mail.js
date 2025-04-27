@@ -6,6 +6,7 @@ const authMiddleware = require("../middleware/session")
 const { send } = require("../controllers/mail")
 const router = express.Router()
 
+// POST /api/mail - Envia un correo
 router.post("/", authMiddleware, validatorMail, send)
 
 module.exports = router;

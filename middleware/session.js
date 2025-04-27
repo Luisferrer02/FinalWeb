@@ -11,16 +11,20 @@ const authMiddleware = async (req, res, next) => {
       return
     }
     // Se espera el formato "Bearer <token>"
-    const token = req.headers.authorization.split(" ").pop()
-    const dataToken = await verifyToken(token)
-    if (!dataToken) {
-      handleHttpError(res, "ERROR_ID_TOKEN", 401)
-      return
+    const token = req.headers.authorization.split(" ").pop();
+    let dataToken;
+    try {
+      dataToken = await verifyToken(token);
+    } catch (err) {
+      if (err.name === "TOKEN_EXPIRED") {
+        return handleHttpError(res, "TOKEN_EXPIRED", 498);
+      }
+      return handleHttpError(res, "TOKEN_INVALID", 401);
     }
     const userId = dataToken._id;
     if (!userId) {
-      handleHttpError(res, "ERROR_ID_TOKEN", 401)
-      return
+      handleHttpError(res, "ERROR_ID_TOKEN", 401);
+      return;
     }
     // Inyecta el usuario en la petición para usarlo en los controladores
     const user = await usersModel.findById(userId)

@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const AddressSchema = new mongoose.Schema({
   street: { type: String, required: true, trim: true },
-  number: { type: Number, required: true },
-  postal: { type: Number, required: true },
+  number: { type: String, required: true },
+  postal: { type: String, required: true },
   city: { type: String, required: true, trim: true },
   province: { type: String, required: true, trim: true }
 }, { _id: false });

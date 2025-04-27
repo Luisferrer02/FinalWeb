@@ -17,20 +17,19 @@ const registerCtrl = async (req, res) => {
       return handleHttpError(res, "EMAIL_ALREADY_EXISTS", 409);
     }
 
-    // Cifra la contraseña y genera el código de verificación
     const passwordHash = await encrypt(data.password);
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const rawCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeHash = await encrypt(rawCode, 6);
 
-    // Construye el objeto para crear el usuario
     const newUserData = {
       ...data,
       password: passwordHash,
       isEmailVerified: false,
-      emailVerificationCode: verificationCode,
+      emailVerificationCodeHash: codeHash,
+      emailVerificationCodeSentAt: Date.now(),
       emailVerificationAttempts: 0,
-      status: "pending"
+      status: "pending",
     };
-
     const dataUser = await usersModel.create(newUserData);
     // Oculta la contraseña en la respuesta
     dataUser.set("password", undefined, { strict: false });
@@ -43,7 +42,7 @@ const registerCtrl = async (req, res) => {
       from: process.env.EMAIL,
       to: dataUser.email,
       subject: "Verificación de Email",
-      text: `Hola ${dataUser.name}, tu código de verificación es: ${verificationCode}`
+      text: `Hola ${dataUser.name}, tu código de verificación es: ${rawCode}`
     };
     sendEmail(emailOptions)
       .then(() => console.log("Email de verificación enviado"))

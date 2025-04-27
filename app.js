@@ -1,6 +1,7 @@
 // app.js
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -18,7 +19,17 @@ const app = express();
 dbConnect();
 
 // Middlewares
-app.use(cors());
+// Seguridad HTTP
+app.use(helmet());
+
+// CORS sólo para orígenes autorizados
+const allowed = process.env.CORS_ORIGINS?.split(",") || [];
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowed.includes(origin)) cb(null, true);
+    else cb(new Error("CORS_NOT_ALLOWED"));
+  }
+}));
 app.use(express.json());
 app.use(express.static("storage"));
 
