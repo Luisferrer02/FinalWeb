@@ -1,0 +1,23 @@
+# docs/paths/auth/register.yaml
+post:
+  tags:
+    - Auth
+  summary: Registrar nuevo usuario
+  operationId: registerUser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/RegisterRequest.yaml'
+  responses:
+    '200':
+      description: Usuario registrado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/AuthResponse.yaml'
+    '409':
+      $ref: '../../components/responses.yaml#/Conflict'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'

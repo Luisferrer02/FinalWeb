@@ -1,3 +1,7 @@
+jest.mock('../utils/handleUploadIPFS', () => ({
+  uploadToPinata: jest.fn().mockResolvedValue({ IpfsHash: 'QmFakeHash' })
+}));
+
 const request = require("supertest");
 const app = require("../app");
 const mongoose = require("mongoose");

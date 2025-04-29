@@ -1,0 +1,36 @@
+type: object
+required:
+  - _id
+  - userId
+  - clientId
+  - projectId
+  - items
+  - createdAt
+properties:
+  _id:
+    type: string
+    description: Identificador único del albarán
+  userId:
+    type: string
+    description: ID del usuario que creó el albarán
+  clientId:
+    type: string
+    description: ID del cliente asociado al albarán
+  projectId:
+    type: string
+    description: ID del proyecto asociado al albarán
+  items:
+    type: array
+    items:
+      $ref: './DeliveryNoteItem.yaml'
+    description: Lista de ítems del albarán (horas o materiales)
+  isSigned:
+    type: boolean
+    description: Indica si el albarán ha sido firmado
+  signatureUrl:
+    type: string
+    description: URL de la imagen de la firma (si está firmado)
+  createdAt:
+    type: string
+    format: date-time
+    description: Fecha y hora en que se creó el albarán

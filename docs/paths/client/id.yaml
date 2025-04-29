@@ -1,0 +1,59 @@
+# docs/paths/client/getClient.yaml
+get:
+  tags:
+    - Client
+  summary: Obtener cliente por ID
+  operationId: getClient
+  responses:
+    '200':
+      description: Cliente encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/Client.yaml'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/client/updateClient.yaml
+put:
+  tags:
+    - Client
+  summary: Actualizar cliente
+  operationId: updateClient
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/NewClient.yaml'
+  responses:
+    '200':
+      description: Cliente actualizado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/Client.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/client/deleteClient.yaml
+delete:
+  tags:
+    - Client
+  summary: Borrar cliente (hard delete)
+  operationId: deleteClient
+  responses:
+    '200':
+      description: Cliente eliminado correctamente
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/ErrorResponse.yaml'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

@@ -1,0 +1,15 @@
+# docs/paths/client/restoreClient.yaml
+parameters:
+  - $ref: '../../components/parameters.yaml#/IdParam'
+patch:
+  tags:
+    - Client
+  summary: Restaurar cliente archivado
+  operationId: restoreClient
+  responses:
+    '200':
+      description: Cliente restaurado correctamente
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

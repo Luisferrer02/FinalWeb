@@ -1,0 +1,15 @@
+# docs/components/schemas/NewProject.yaml
+type: object
+required:
+  - name
+  - clientId
+properties:
+  name:
+    type: string
+    description: Nombre del nuevo proyecto
+  clientId:
+    type: string
+    description: ID del cliente al que pertenece el proyecto
+  description:
+    type: string
+    description: Descripción detallada del proyecto (opcional)

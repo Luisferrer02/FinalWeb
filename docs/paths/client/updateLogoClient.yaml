@@ -1,0 +1,36 @@
+# docs/paths/client/updateLogoClient.yaml
+parameters:
+  - $ref: '../../components/parameters.yaml#/IdParam'
+patch:
+  tags:
+    - Client
+  summary: Actualizar logo de cliente
+  operationId: updateLogoClient
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            image:
+              type: string
+              format: binary
+  responses:
+    '200':
+      description: Logo actualizado correctamente
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              client:
+                $ref: '../../components/schemas/Client.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

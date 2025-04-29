@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "bundle-swagger": "swagger-cli bundle docs/swagger.yaml -o docs/swagger-bundled.yaml -t yaml --dereference",
     "test": "cross-env NODE_ENV=test jest --runInBand --coverage --reporters=default --reporters=jest-html-reporter"
   },
   "keywords": [],
@@ -35,6 +36,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
+    "@apidevtools/swagger-cli": "^4.0.4",
     "cross-env": "^7.0.3",
     "jest": "^29.7.0",
     "jest-html-reporter": "^4.1.0"

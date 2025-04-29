@@ -1,0 +1,55 @@
+# docs/paths/project/getProject.yaml
+get:
+  tags:
+    - Project
+  summary: Obtener proyecto por ID
+  operationId: getProject
+  responses:
+    '200':
+      description: Proyecto encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/Project.yaml'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/project/updateProject.yaml
+put:
+  tags:
+    - Project
+  summary: Actualizar proyecto
+  operationId: updateProject
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/NewProject.yaml'
+  responses:
+    '200':
+      description: Proyecto actualizado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/Project.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/project/deleteProject.yaml
+delete:
+  tags:
+    - Project
+  summary: Eliminar proyecto
+  operationId: deleteProject
+  responses:
+    '200':
+      description: Proyecto eliminado correctamente
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

@@ -1,0 +1,17 @@
+# docs/paths/project/getArchivedProjects.yaml
+get:
+  tags:
+    - Project
+  summary: Listar proyectos archivados
+  operationId: getArchivedProjects
+  responses:
+    '200':
+      description: Lista de proyectos archivados
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../../components/schemas/Project.yaml'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

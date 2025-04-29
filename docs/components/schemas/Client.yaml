@@ -1,0 +1,38 @@
+type: object
+required:
+  - _id
+  - userId
+  - name
+  - cif
+  - address
+properties:
+  _id:
+    type: string
+    description: Identificador único del cliente
+  userId:
+    type: string
+    description: ID del usuario propietario del cliente
+  name:
+    type: string
+    description: Nombre del cliente
+  cif:
+    type: string
+    description: Código fiscal del cliente
+  address:
+    $ref: './Address.yaml'
+    description: Dirección completa del cliente
+  logo:
+    type: string
+    description: URL del logo del cliente
+  activeProjects:
+    type: integer
+    description: Número de proyectos activos
+  pendingDeliveryNotes:
+    type: integer
+    description: Número de albaranes pendientes
+  archivedProjects:
+    type: integer
+    description: Número de proyectos archivados
+  archived:
+    type: boolean
+    description: Indica si el cliente está archivado

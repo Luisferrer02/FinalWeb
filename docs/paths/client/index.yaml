@@ -1,0 +1,46 @@
+# docs/paths/client/addClient.yaml
+post:
+  tags:
+    - Client
+  summary: Crear nuevo cliente
+  operationId: addClient
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/NewClient.yaml'
+  responses:
+    '200':
+      description: Cliente creado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              clientSaved:
+                $ref: '../../components/schemas/Client.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/client/getClients.yaml
+get:
+  tags:
+    - Client
+  summary: Obtener lista de clientes activos
+  operationId: getClients
+  responses:
+    '200':
+      description: Lista de clientes
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              clients:
+                type: array
+                items:
+                  $ref: '../../components/schemas/Client.yaml'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

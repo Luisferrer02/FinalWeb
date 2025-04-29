@@ -1,0 +1,17 @@
+# docs/paths/users/getUsers.yaml
+get:
+  tags:
+    - User
+  summary: Listar todos los usuarios
+  operationId: getUsers
+  responses:
+    '200':
+      description: Lista de usuarios
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../../components/schemas/User.yaml'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

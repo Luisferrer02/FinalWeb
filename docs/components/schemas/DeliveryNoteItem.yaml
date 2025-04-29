@@ -1,0 +1,18 @@
+type: object
+required:
+  - type
+  - description
+  - quantity
+properties:
+  type:
+    type: string
+    enum:
+      - hour
+      - material
+    description: Tipo de ítem (hora o material)
+  description:
+    type: string
+    description: Detalle o descripción del ítem del albarán
+  quantity:
+    type: integer
+    description: Cantidad del ítem

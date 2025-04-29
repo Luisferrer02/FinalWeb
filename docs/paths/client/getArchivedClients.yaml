@@ -1,0 +1,17 @@
+# docs/paths/client/getArchivedClients.yaml
+get:
+  tags:
+    - Client
+  summary: Obtener clientes archivados
+  operationId: getArchivedClients
+  responses:
+    '200':
+      description: Lista de clientes archivados
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../../components/schemas/Client.yaml'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

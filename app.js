@@ -5,13 +5,13 @@ const helmet = require("helmet");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const morganBody = require("morgan-body");
-const checkRol = require("./middleware/rol");
+const morganBody   = require("morgan-body");
 const loggerStream = require("./utils/handleLogger");
-const dbConnect = require("./config/mongo");
+const dbConnect    = require("./config/mongo");
 
-const swaggerUi = require("swagger-ui-express");
-const swaggerSpecs = require("./docs/swagger");
+// Carga el bundle dereferenciado (renombra swagger-bundled.yaml → swagger.yaml)
+const swaggerUi       = require("swagger-ui-express");
+const swaggerDocument = require("./docs/swagger");  
 
 const app = express();
 
@@ -19,10 +19,7 @@ const app = express();
 dbConnect();
 
 // Middlewares
-// Seguridad HTTP
 app.use(helmet());
-
-// CORS sólo para orígenes autorizados
 const allowed = process.env.CORS_ORIGINS?.split(",") || [];
 app.use(cors({
   origin: (origin, cb) => {
@@ -39,32 +36,35 @@ morganBody(app, {
   stream: loggerStream,
 });
 
-// Rutas principales
+// Rutas de tu API
 app.use("/api", require("./routes"));
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-// ... rutas de testing
+// Swagger UI (con spec ya cargada en memoria)
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument)
+);
+
+// Rutas de testing/error
 app.get("/api/error-forzado", (req, res, next) => {
   next(new Error("Error de prueba"));
 });
-
 app.get("/api/forbidden", (req, res, next) => {
   const err = new Error("Acceso denegado");
   err.status = 403;
   next(err);
 });
-
 app.get("/api/error-no-message", (req, res, next) => {
   throw new Error();
 });
 
-app.use((req, res, next) => {
+// Catch-all 404
+app.use((req, res) => {
   res.status(404).json({ error: "Endpoint no encontrado" });
 });
 
-
-
-/* Middleware de errores global*/
+// Error handler global
 app.use((err, req, res, next) => {
   console.error("Error global:", err);
   res.status(err.status || 500).json({

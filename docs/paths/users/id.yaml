@@ -1,0 +1,55 @@
+# docs/paths/users/getUser.yaml
+get:
+  tags:
+    - User
+  summary: Obtener usuario por ID
+  operationId: getUser
+  responses:
+    '200':
+      description: Usuario encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/User.yaml'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/users/updateUser.yaml
+patch:
+  tags:
+    - User
+  summary: Actualizar usuario (admin)
+  operationId: updateUser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/User.yaml'
+  responses:
+    '200':
+      description: Usuario actualizado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/User.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/users/deleteUser.yaml
+delete:
+  tags:
+    - User
+  summary: Borrar usuario (admin)
+  operationId: deleteUser
+  responses:
+    '200':
+      description: Usuario eliminado
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

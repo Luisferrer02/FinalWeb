@@ -1,0 +1,41 @@
+BadRequest:
+  description: Petición inválida
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/ErrorResponse.yaml'
+
+Unauthorized:
+  description: No autenticado o token inválido
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/ErrorResponse.yaml'
+
+Forbidden:
+  description: Prohibido. No tienes permisos para acceder
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/ErrorResponse.yaml'
+
+NotFound:
+  description: Recurso no encontrado
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/ErrorResponse.yaml'
+
+Conflict:
+  description: Conflicto (recurso existente)
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/ErrorResponse.yaml'
+
+InternalError:
+  description: Error interno de servidor
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/ErrorResponse.yaml'

@@ -1,0 +1,13 @@
+# docs/components/schemas/LoginRequest.yaml
+type: object
+required:
+  - email
+  - password
+properties:
+  email:
+    type: string
+    format: email
+    description: Correo electrónico del usuario
+  password:
+    type: string
+    description: Contraseña del usuario

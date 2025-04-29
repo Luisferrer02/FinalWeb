@@ -1,0 +1,23 @@
+type: object
+required:
+  - street
+  - number
+  - postal
+  - city
+  - province
+properties:
+  street:
+    type: string
+    description: Nombre de la calle
+  number:
+    type: integer
+    description: Número de puerta o edificio
+  postal:
+    type: integer
+    description: Código postal
+  city:
+    type: string
+    description: Ciudad
+  province:
+    type: string
+    description: Provincia o región

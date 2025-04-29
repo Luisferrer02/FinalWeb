@@ -1,0 +1,21 @@
+# docs/paths/mail/sendMail.yaml
+post:
+  tags:
+    - Mail
+  summary: Enviar email
+  operationId: sendMail
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/MailRequest.yaml'
+  responses:
+    '200':
+      description: Email enviado
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '401':
+      $ref: '../../components/responses.yaml#/Unauthorized'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

@@ -1,0 +1,55 @@
+# docs/components/schemas/User.yaml
+type: object
+required:
+  - _id
+  - email
+  - role
+properties:
+  _id:
+    type: string
+    description: Identificador único del usuario
+  name:
+    type: string
+    description: Nombre de pila del usuario
+  lastName:
+    type: string
+    description: Apellidos del usuario
+  nif:
+    type: string
+    description: Número de identificación fiscal (NIF)
+  email:
+    type: string
+    format: email
+    description: Correo electrónico del usuario
+  role:
+    type: string
+    enum:
+      - user
+      - admin
+      - guest
+    description: Rol asignado al usuario
+  isEmailVerified:
+    type: boolean
+    description: Indica si el correo ha sido verificado
+  status:
+    type: string
+    description: Estado del usuario (p.ej. pending, active)
+  company:
+    type: object
+    description: Datos de la empresa asociada (opcional)
+    properties:
+      companyName:
+        type: string
+        description: Nombre de la empresa
+      cif:
+        type: string
+        description: CIF de la empresa
+      address:
+        type: string
+        description: Dirección de la empresa
+  logo:
+    type: string
+    description: URL del logo del usuario
+  deleted:
+    type: boolean
+    description: Marca si el usuario está eliminado (soft delete)

@@ -1,0 +1,27 @@
+# docs/paths/deliverynote/signDeliveryNote.yaml
+parameters:
+  - $ref: '../../components/parameters.yaml#/IdParam'
+post:
+  tags:
+    - DeliveryNote
+  summary: Firmar albarán
+  operationId: signDeliveryNote
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            image:
+              type: string
+              format: binary
+  responses:
+    '200':
+      description: Albarán firmado
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

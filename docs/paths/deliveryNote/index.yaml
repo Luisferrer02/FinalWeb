@@ -1,0 +1,40 @@
+# docs/paths/deliverynote/getDeliveryNotes.yaml
+get:
+  tags:
+    - DeliveryNote
+  summary: Listar albaranes
+  operationId: getDeliveryNotes
+  responses:
+    '200':
+      description: Lista de albaranes
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../../components/schemas/DeliveryNote.yaml'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/deliverynote/createDeliveryNote.yaml
+post:
+  tags:
+    - DeliveryNote
+  summary: Crear albarán
+  operationId: createDeliveryNote
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/NewDeliveryNote.yaml'
+  responses:
+    '200':
+      description: Albarán creado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/DeliveryNote.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

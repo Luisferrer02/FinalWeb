@@ -1,0 +1,17 @@
+# docs/paths/deliverynote/generateDeliveryNotePdf.yaml
+parameters:
+  - $ref: '../../components/parameters.yaml#/IdParam'
+get:
+  tags:
+    - DeliveryNote
+  summary: Descargar PDF de albarán
+  operationId: generateDeliveryNotePdf
+  responses:
+    '200':
+      description: PDF generado
+      content:
+        application/pdf: {}
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

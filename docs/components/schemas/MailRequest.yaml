@@ -1,0 +1,22 @@
+# docs/components/schemas/MailRequest.yaml
+type: object
+required:
+  - from
+  - to
+  - subject
+  - text
+properties:
+  from:
+    type: string
+    format: email
+    description: Correo electrónico del remitente
+  to:
+    type: string
+    format: email
+    description: Correo electrónico del destinatario
+  subject:
+    type: string
+    description: Asunto del correo
+  text:
+    type: string
+    description: Cuerpo del mensaje de correo

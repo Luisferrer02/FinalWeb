@@ -1,0 +1,28 @@
+# docs/paths/users/validateEmail.yaml
+post:
+  tags:
+    - User
+  summary: Verificar email con código
+  operationId: validateEmail
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            code:
+              type: string
+          required:
+            - code
+  responses:
+    '200':
+      description: Email verificado
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '401':
+      $ref: '../../components/responses.yaml#/Unauthorized'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

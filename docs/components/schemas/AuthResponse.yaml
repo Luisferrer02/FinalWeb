@@ -1,0 +1,11 @@
+type: object
+required:
+  - token
+  - user
+properties:
+  token:
+    type: string
+    description: Token JWT emitido tras autenticación
+  user:
+    $ref: './User.yaml'
+    description: Información del usuario autenticado

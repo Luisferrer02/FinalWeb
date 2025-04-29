@@ -1,0 +1,25 @@
+# docs/paths/auth/login.yaml
+post:
+  tags:
+    - Auth
+  summary: Login de usuario
+  operationId: loginUser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/LoginRequest.yaml'
+  responses:
+    '200':
+      description: Autenticación correcta
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/AuthResponse.yaml'
+    '401':
+      $ref: '../../components/responses.yaml#/Unauthorized'
+    '403':
+      $ref: '../../components/responses.yaml#/Forbidden'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'

@@ -1,0 +1,30 @@
+ErrorResponse:
+  $ref: './ErrorResponse.yaml'
+RegisterRequest:
+  $ref: './RegisterRequest.yaml'
+LoginRequest:
+  $ref: './LoginRequest.yaml'
+AuthResponse:
+  $ref: './AuthResponse.yaml'
+User:
+  $ref: './User.yaml'
+Address:
+  $ref: './Address.yaml'
+Client:
+  $ref: './Client.yaml'
+NewClient:
+  $ref: './NewClient.yaml'
+Project:
+  $ref: './Project.yaml'
+NewProject:
+  $ref: './NewProject.yaml'
+DeliveryNoteItem:
+  $ref: './DeliveryNoteItem.yaml'
+DeliveryNote:
+  $ref: './DeliveryNote.yaml'
+NewDeliveryNote:
+  $ref: './NewDeliveryNote.yaml'
+StorageItem:
+  $ref: './StorageItem.yaml'
+MailRequest:
+  $ref: './MailRequest.yaml'

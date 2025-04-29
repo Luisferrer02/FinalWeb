@@ -1,0 +1,62 @@
+# docs/swaggerPaths.yaml
+"/auth/register":
+  $ref: "./paths/auth/register.yaml"
+"/auth/login":
+  $ref: "./paths/auth/login.yaml"
+
+"/client":
+  $ref: "./paths/client/index.yaml"
+"/client/archive":
+  $ref: "./paths/client/getArchivedClients.yaml"
+"/client/logo/{id}":
+  $ref: "./paths/client/updateLogoClient.yaml"
+"/client/archive/{id}":
+  $ref: "./paths/client/archiveClient.yaml"
+"/client/restore/{id}":
+  $ref: "./paths/client/restoreClient.yaml"
+
+"/deliverynote":
+  $ref: "./paths/deliverynote/index.yaml"
+"/deliverynote/{id}":
+  $ref: "./paths/deliverynote/id.yaml"
+"/deliverynote/pdf/{id}":
+  $ref: "./paths/deliverynote/generateDeliveryNotePdf.yaml"
+"/deliverynote/sign/{id}":
+  $ref: "./paths/deliverynote/signDeliveryNote.yaml"
+
+"/mail":
+  $ref: "./paths/mail/sendMail.yaml"
+
+"/project":
+  $ref: "./paths/project/index.yaml"
+"/project/archive":
+  $ref: "./paths/project/getArchivedProjects.yaml"
+"/project/{id}":
+  $ref: "./paths/project/id.yaml"
+"/project/archive/{id}":
+  $ref: "./paths/project/archiveProject.yaml"
+"/project/restore/{id}":
+  $ref: "./paths/project/restoreProject.yaml"
+
+"/users/me":
+  $ref: "./paths/users/me.yaml"
+"/users/logo":
+  $ref: "./paths/users/updateUserLogo.yaml"
+"/users":
+  $ref: "./paths/users/getUsers.yaml"
+"/users/{id}":
+  $ref: "./paths/users/id.yaml"
+"/users/role/{id}":
+  $ref: "./paths/users/updateUserRole.yaml"
+"/users/validate-email":
+  $ref: "./paths/users/validateEmail.yaml"
+"/users/onboarding/personal":
+  $ref: "./paths/users/onboardingPersonal.yaml"
+"/users/onboarding/company":
+  $ref: "./paths/users/onboardingCompany.yaml"
+"/users/recover-password-code":
+  $ref: "./paths/users/recoverPasswordCode.yaml"
+"/users/change-password":
+  $ref: "./paths/users/changePassword.yaml"
+"/users/invite":
+  $ref: "./paths/users/inviteUser.yaml"

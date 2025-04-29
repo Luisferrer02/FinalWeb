@@ -1,0 +1,25 @@
+# docs/paths/users/updateUserLogo.yaml
+patch:
+  tags:
+    - User
+  summary: Actualizar logo de usuario
+  operationId: updateUserLogo
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            image:
+              type: string
+              format: binary
+  responses:
+    '200':
+      description: Logo actualizado
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '401':
+      $ref: '../../components/responses.yaml#/Unauthorized'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

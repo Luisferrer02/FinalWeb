@@ -1,0 +1,18 @@
+# docs/components/schemas/NewDeliveryNote.yaml
+type: object
+required:
+  - clientId
+  - projectId
+  - items
+properties:
+  clientId:
+    type: string
+    description: ID del cliente asociado al albarán
+  projectId:
+    type: string
+    description: ID del proyecto asociado al albarán
+  items:
+    type: array
+    items:
+      $ref: './DeliveryNoteItem.yaml'
+    description: Lista de ítems del albarán (horas o materiales)

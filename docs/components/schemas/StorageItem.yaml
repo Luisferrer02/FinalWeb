@@ -1,0 +1,21 @@
+# docs/components/schemas/StorageItem.yaml
+type: object
+required:
+  - _id
+  - originalName
+  - ipfs
+  - createdAt
+properties:
+  _id:
+    type: string
+    description: Identificador único del item de almacenamiento
+  originalName:
+    type: string
+    description: Nombre original del archivo subido
+  ipfs:
+    type: string
+    description: URL/IPFS hash donde está almacenado el archivo
+  createdAt:
+    type: string
+    format: date-time
+    description: Fecha y hora de creación del registro

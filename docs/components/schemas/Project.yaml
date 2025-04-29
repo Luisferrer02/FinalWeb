@@ -1,0 +1,26 @@
+# docs/components/schemas/Project.yaml
+type: object
+required:
+  - _id
+  - userId
+  - clientId
+  - name
+properties:
+  _id:
+    type: string
+    description: Identificador único del proyecto
+  userId:
+    type: string
+    description: ID del usuario propietario del proyecto
+  clientId:
+    type: string
+    description: ID del cliente al que pertenece el proyecto
+  name:
+    type: string
+    description: Nombre del proyecto
+  description:
+    type: string
+    description: Descripción detallada del proyecto
+  archived:
+    type: boolean
+    description: Indica si el proyecto está archivado

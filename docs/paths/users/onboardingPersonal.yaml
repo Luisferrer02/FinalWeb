@@ -1,0 +1,32 @@
+# docs/paths/users/onboardingPersonal.yaml
+patch:
+  tags:
+    - User
+  summary: Completar datos personales
+  operationId: onboardingPersonal
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            lastName:
+              type: string
+            nif:
+              type: string
+          required:
+            - name
+            - lastName
+            - nif
+  responses:
+    '200':
+      description: Onboarding personal completado
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '401':
+      $ref: '../../components/responses.yaml#/Unauthorized'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

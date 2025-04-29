@@ -1,0 +1,27 @@
+# docs/paths/users/inviteUser.yaml
+post:
+  tags:
+    - User
+  summary: Invitar nuevo usuario (admin)
+  operationId: inviteUser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+          required:
+            - email
+  responses:
+    '200':
+      description: Invitación enviada
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '409':
+      $ref: '../../components/responses.yaml#/Conflict'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

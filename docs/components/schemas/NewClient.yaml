@@ -1,0 +1,16 @@
+# docs/components/schemas/NewClient.yaml
+type: object
+required:
+  - name
+  - cif
+  - address
+properties:
+  name:
+    type: string
+    description: Nombre del nuevo cliente
+  cif:
+    type: string
+    description: Código fiscal del nuevo cliente
+  address:
+    $ref: './Address.yaml'
+    description: Dirección del nuevo cliente

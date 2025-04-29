@@ -1,325 +1,408 @@
 openapi: 3.0.0
 info:
   title: API Web Server
-  description: Documentación de la API para gestión de usuarios, clientes, proyectos, albaranes, almacenamiento y envíos de email.
+  description: 'Documentación de la API para gestión de usuarios, clientes, proyectos, albaranes, almacenamiento y envíos de email.'
   version: 1.0.0
 servers:
-  - url: http://localhost:{port}/api
+  - url: 'http://localhost:{port}/api'
     description: Servidor local
     variables:
       port:
         default: '3000'
         description: Puerto configurado en la variable de entorno PORT
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-
-    # --- Auth ---
-    RegisterRequest:
-      type: object
-      required:
-        - name
-        - email
-        - password
-      properties:
-        name:
-          type: string
-          minLength: 3
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          minLength: 8
-          maxLength: 16
-
-    LoginRequest:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-
-    AuthResponse:
-      type: object
-      properties:
-        token:
-          type: string
-        user:
-          $ref: '#/components/schemas/User'
-
-    # --- User ---
-    User:
-      type: object
-      properties:
-        _id:
-          type: string
-        name:
-          type: string
-        lastName:
-          type: string
-        nif:
-          type: string
-        email:
-          type: string
-          format: email
-        role:
-          type: string
-          enum: [user, admin, guest]
-        isEmailVerified:
-          type: boolean
-        status:
-          type: string
-        company:
-          type: object
-          properties:
-            companyName:
-              type: string
-            cif:
-              type: string
-            address:
-              type: string
-        logo:
-          type: string
-        deleted:
-          type: boolean
-
-    # --- Client ---
-    Address:
-      type: object
-      properties:
-        street:
-          type: string
-        number:
-          type: integer
-        postal:
-          type: integer
-        city:
-          type: string
-        province:
-          type: string
-
-    Client:
-      type: object
-      properties:
-        _id:
-          type: string
-        userId:
-          type: string
-        name:
-          type: string
-        cif:
-          type: string
-        address:
-          $ref: '#/components/schemas/Address'
-        logo:
-          type: string
-        activeProjects:
-          type: integer
-        pendingDeliveryNotes:
-          type: integer
-        archivedProjects:
-          type: integer
-        archived:
-          type: boolean
-
-    NewClient:
-      type: object
-      required: [name, cif, address]
-      properties:
-        name:
-          type: string
-        cif:
-          type: string
-        address:
-          $ref: '#/components/schemas/Address'
-
-    # --- Project ---
-    Project:
-      type: object
-      properties:
-        _id:
-          type: string
-        userId:
-          type: string
-        clientId:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        archived:
-          type: boolean
-
-    NewProject:
-      type: object
-      required: [name, clientId]
-      properties:
-        name:
-          type: string
-        clientId:
-          type: string
-        description:
-          type: string
-
-    # --- Delivery Note ---
-    DeliveryNoteItem:
-      type: object
-      required: [type, description, quantity]
-      properties:
-        type:
-          type: string
-          enum: [hour, material]
-        description:
-          type: string
-        quantity:
-          type: integer
-
-    DeliveryNote:
-      type: object
-      properties:
-        _id:
-          type: string
-        userId:
-          type: string
-        clientId:
-          type: string
-        projectId:
-          type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/DeliveryNoteItem'
-        isSigned:
-          type: boolean
-        signatureUrl:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-
-    NewDeliveryNote:
-      type: object
-      required: [clientId, projectId, items]
-      properties:
-        clientId:
-          type: string
-        projectId:
-          type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/DeliveryNoteItem'
-
-    # --- Storage ---
-    StorageItem:
-      type: object
-      properties:
-        _id:
-          type: string
-        originalName:
-          type: string
-        ipfs:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-
-    NewStorageItem:
-      type: object
-      properties:
-        # multipart/form-data con file
-        dummy:
-          type: string
-
-    # --- Mail ---
-    MailRequest:
-      type: object
-      required: [from, to, subject, text]
-      properties:
-        from:
-          type: string
-          format: email
-        to:
-          type: string
-          format: email
-        subject:
-          type: string
-        text:
-          type: string
-
-security:
-  - bearerAuth: []
-
 paths:
-
   /auth/register:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Registrar nuevo usuario
+      operationId: registerUser
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  description: Nombre del usuario (mínimo 3 caracteres)
+                email:
+                  type: string
+                  format: email
+                  description: Correo electrónico del usuario
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 16
+                  description: Contraseña del usuario (8–16 caracteres)
       responses:
         '200':
           description: Usuario registrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '409':
-          description: Email ya existe
+                type: object
+                required:
+                  - token
+                  - user
+                properties:
+                  token:
+                    type: string
+                    description: Token JWT emitido tras autenticación
+                  user:
+                    description: Información del usuario autenticado
+                    type: object
+                    required:
+                      - _id
+                      - email
+                      - role
+                    properties:
+                      _id:
+                        type: string
+                        description: Identificador único del usuario
+                      name:
+                        type: string
+                        description: Nombre de pila del usuario
+                      lastName:
+                        type: string
+                        description: Apellidos del usuario
+                      nif:
+                        type: string
+                        description: Número de identificación fiscal (NIF)
+                      email:
+                        type: string
+                        format: email
+                        description: Correo electrónico del usuario
+                      role:
+                        type: string
+                        enum:
+                          - user
+                          - admin
+                          - guest
+                        description: Rol asignado al usuario
+                      isEmailVerified:
+                        type: boolean
+                        description: Indica si el correo ha sido verificado
+                      status:
+                        type: string
+                        description: 'Estado del usuario (p.ej. pending, active)'
+                      company:
+                        type: object
+                        description: Datos de la empresa asociada (opcional)
+                        properties:
+                          companyName:
+                            type: string
+                            description: Nombre de la empresa
+                          cif:
+                            type: string
+                            description: CIF de la empresa
+                          address:
+                            type: string
+                            description: Dirección de la empresa
+                      logo:
+                        type: string
+                        description: URL del logo del usuario
+                      deleted:
+                        type: boolean
+                        description: Marca si el usuario está eliminado (soft delete)
+        '400':
+          description: Petición inválida
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '409':
+          description: Conflicto (recurso existente)
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /auth/login:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Login de usuario
+      operationId: loginUser
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Correo electrónico del usuario
+                password:
+                  type: string
+                  description: Contraseña del usuario
       responses:
         '200':
           description: Autenticación correcta
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                type: object
+                required:
+                  - token
+                  - user
+                properties:
+                  token:
+                    type: string
+                    description: Token JWT emitido tras autenticación
+                  user:
+                    description: Información del usuario autenticado
+                    type: object
+                    required:
+                      - _id
+                      - email
+                      - role
+                    properties:
+                      _id:
+                        type: string
+                        description: Identificador único del usuario
+                      name:
+                        type: string
+                        description: Nombre de pila del usuario
+                      lastName:
+                        type: string
+                        description: Apellidos del usuario
+                      nif:
+                        type: string
+                        description: Número de identificación fiscal (NIF)
+                      email:
+                        type: string
+                        format: email
+                        description: Correo electrónico del usuario
+                      role:
+                        type: string
+                        enum:
+                          - user
+                          - admin
+                          - guest
+                        description: Rol asignado al usuario
+                      isEmailVerified:
+                        type: boolean
+                        description: Indica si el correo ha sido verificado
+                      status:
+                        type: string
+                        description: 'Estado del usuario (p.ej. pending, active)'
+                      company:
+                        type: object
+                        description: Datos de la empresa asociada (opcional)
+                        properties:
+                          companyName:
+                            type: string
+                            description: Nombre de la empresa
+                          cif:
+                            type: string
+                            description: CIF de la empresa
+                          address:
+                            type: string
+                            description: Dirección de la empresa
+                      logo:
+                        type: string
+                        description: URL del logo del usuario
+                      deleted:
+                        type: boolean
+                        description: Marca si el usuario está eliminado (soft delete)
         '401':
-          description: Credenciales inválidas
+          description: No autenticado o token inválido
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '403':
+          description: Prohibido. No tienes permisos para acceder
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /client:
+    post:
+      tags:
+        - Client
+      summary: Crear nuevo cliente
+      operationId: addClient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - cif
+                - address
+              properties:
+                name:
+                  type: string
+                  description: Nombre del nuevo cliente
+                cif:
+                  type: string
+                  description: Código fiscal del nuevo cliente
+                address:
+                  description: Dirección del nuevo cliente
+                  type: object
+                  required:
+                    - street
+                    - number
+                    - postal
+                    - city
+                    - province
+                  properties:
+                    street:
+                      type: string
+                      description: Nombre de la calle
+                    number:
+                      type: integer
+                      description: Número de puerta o edificio
+                    postal:
+                      type: integer
+                      description: Código postal
+                    city:
+                      type: string
+                      description: Ciudad
+                    province:
+                      type: string
+                      description: Provincia o región
+      responses:
+        '200':
+          description: Cliente creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clientSaved:
+                    type: object
+                    required:
+                      - _id
+                      - userId
+                      - name
+                      - cif
+                      - address
+                    properties:
+                      _id:
+                        type: string
+                        description: Identificador único del cliente
+                      userId:
+                        type: string
+                        description: ID del usuario propietario del cliente
+                      name:
+                        type: string
+                        description: Nombre del cliente
+                      cif:
+                        type: string
+                        description: Código fiscal del cliente
+                      address:
+                        description: Dirección completa del cliente
+                        type: object
+                        required:
+                          - street
+                          - number
+                          - postal
+                          - city
+                          - province
+                        properties:
+                          street:
+                            type: string
+                            description: Nombre de la calle
+                          number:
+                            type: integer
+                            description: Número de puerta o edificio
+                          postal:
+                            type: integer
+                            description: Código postal
+                          city:
+                            type: string
+                            description: Ciudad
+                          province:
+                            type: string
+                            description: Provincia o región
+                      logo:
+                        type: string
+                        description: URL del logo del cliente
+                      activeProjects:
+                        type: integer
+                        description: Número de proyectos activos
+                      pendingDeliveryNotes:
+                        type: integer
+                        description: Número de albaranes pendientes
+                      archivedProjects:
+                        type: integer
+                        description: Número de proyectos archivados
+                      archived:
+                        type: boolean
+                        description: Indica si el cliente está archivado
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
     get:
-      tags: [Client]
+      tags:
+        - Client
       summary: Obtener lista de clientes activos
+      operationId: getClients
       responses:
         '200':
           description: Lista de clientes
@@ -331,31 +414,83 @@ paths:
                   clients:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Client'
-    post:
-      tags: [Client]
-      summary: Crear nuevo cliente
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewClient'
-      responses:
-        '200':
-          description: Cliente creado
+                      type: object
+                      required:
+                        - _id
+                        - userId
+                        - name
+                        - cif
+                        - address
+                      properties:
+                        _id:
+                          type: string
+                          description: Identificador único del cliente
+                        userId:
+                          type: string
+                          description: ID del usuario propietario del cliente
+                        name:
+                          type: string
+                          description: Nombre del cliente
+                        cif:
+                          type: string
+                          description: Código fiscal del cliente
+                        address:
+                          description: Dirección completa del cliente
+                          type: object
+                          required:
+                            - street
+                            - number
+                            - postal
+                            - city
+                            - province
+                          properties:
+                            street:
+                              type: string
+                              description: Nombre de la calle
+                            number:
+                              type: integer
+                              description: Número de puerta o edificio
+                            postal:
+                              type: integer
+                              description: Código postal
+                            city:
+                              type: string
+                              description: Ciudad
+                            province:
+                              type: string
+                              description: Provincia o región
+                        logo:
+                          type: string
+                          description: URL del logo del cliente
+                        activeProjects:
+                          type: integer
+                          description: Número de proyectos activos
+                        pendingDeliveryNotes:
+                          type: integer
+                          description: Número de albaranes pendientes
+                        archivedProjects:
+                          type: integer
+                          description: Número de proyectos archivados
+                        archived:
+                          type: boolean
+                          description: Indica si el cliente está archivado
+        '500':
+          description: Error interno de servidor
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - error
                 properties:
-                  clientSaved:
-                    $ref: '#/components/schemas/Client'
-
+                  error:
+                    type: string
   /client/archive:
     get:
-      tags: [Client]
+      tags:
+        - Client
       summary: Obtener clientes archivados
+      operationId: getArchivedClients
       responses:
         '200':
           description: Lista de clientes archivados
@@ -364,56 +499,90 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Client'
-
-  /client/{id}:
+                  type: object
+                  required:
+                    - _id
+                    - userId
+                    - name
+                    - cif
+                    - address
+                  properties:
+                    _id:
+                      type: string
+                      description: Identificador único del cliente
+                    userId:
+                      type: string
+                      description: ID del usuario propietario del cliente
+                    name:
+                      type: string
+                      description: Nombre del cliente
+                    cif:
+                      type: string
+                      description: Código fiscal del cliente
+                    address:
+                      description: Dirección completa del cliente
+                      type: object
+                      required:
+                        - street
+                        - number
+                        - postal
+                        - city
+                        - province
+                      properties:
+                        street:
+                          type: string
+                          description: Nombre de la calle
+                        number:
+                          type: integer
+                          description: Número de puerta o edificio
+                        postal:
+                          type: integer
+                          description: Código postal
+                        city:
+                          type: string
+                          description: Ciudad
+                        province:
+                          type: string
+                          description: Provincia o región
+                    logo:
+                      type: string
+                      description: URL del logo del cliente
+                    activeProjects:
+                      type: integer
+                      description: Número de proyectos activos
+                    pendingDeliveryNotes:
+                      type: integer
+                      description: Número de albaranes pendientes
+                    archivedProjects:
+                      type: integer
+                      description: Número de proyectos archivados
+                    archived:
+                      type: boolean
+                      description: Indica si el cliente está archivado
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/client/logo/{id}':
     parameters:
       - name: id
         in: path
         required: true
         schema:
           type: string
-    get:
-      tags: [Client]
-      summary: Obtener cliente por ID
-      responses:
-        '200':
-          description: Cliente encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Client'
-    put:
-      tags: [Client]
-      summary: Actualizar cliente
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewClient'
-      responses:
-        '200':
-          description: Cliente actualizado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Client'
-    delete:
-      tags: [Client]
-      summary: Borrar cliente (hard delete)
-      responses:
-        '200':
-          description: Cliente eliminado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /client/logo/{id}:
+        description: Identificador único (MongoDB ObjectId)
     patch:
-      tags: [Client]
+      tags:
+        - Client
       summary: Actualizar logo de cliente
+      operationId: updateLogoClient
       requestBody:
         required: true
         content:
@@ -426,7 +595,7 @@ paths:
                   format: binary
       responses:
         '200':
-          description: Logo actualizado
+          description: Logo actualizado correctamente
           content:
             application/json:
               schema:
@@ -435,45 +604,181 @@ paths:
                   message:
                     type: string
                   client:
-                    $ref: '#/components/schemas/Client'
-
-  /client/archive/{id}:
-    delete:
-      tags: [Client]
-      summary: Archivar cliente (soft delete)
-      responses:
-        '200':
-          description: Cliente archivado correctamente
-
-  /client/restore/{id}:
-    patch:
-      tags: [Client]
-      summary: Restaurar cliente archivado
-      responses:
-        '200':
-          description: Cliente restaurado correctamente
-
-  # — Delivery Notes —
-  /deliverynote:
-    post:
-      tags: [DeliveryNote]
-      summary: Crear albarán
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewDeliveryNote'
-      responses:
-        '200':
-          description: Albarán creado
+                    type: object
+                    required:
+                      - _id
+                      - userId
+                      - name
+                      - cif
+                      - address
+                    properties:
+                      _id:
+                        type: string
+                        description: Identificador único del cliente
+                      userId:
+                        type: string
+                        description: ID del usuario propietario del cliente
+                      name:
+                        type: string
+                        description: Nombre del cliente
+                      cif:
+                        type: string
+                        description: Código fiscal del cliente
+                      address:
+                        description: Dirección completa del cliente
+                        type: object
+                        required:
+                          - street
+                          - number
+                          - postal
+                          - city
+                          - province
+                        properties:
+                          street:
+                            type: string
+                            description: Nombre de la calle
+                          number:
+                            type: integer
+                            description: Número de puerta o edificio
+                          postal:
+                            type: integer
+                            description: Código postal
+                          city:
+                            type: string
+                            description: Ciudad
+                          province:
+                            type: string
+                            description: Provincia o región
+                      logo:
+                        type: string
+                        description: URL del logo del cliente
+                      activeProjects:
+                        type: integer
+                        description: Número de proyectos activos
+                      pendingDeliveryNotes:
+                        type: integer
+                        description: Número de albaranes pendientes
+                      archivedProjects:
+                        type: integer
+                        description: Número de proyectos archivados
+                      archived:
+                        type: boolean
+                        description: Indica si el cliente está archivado
+        '400':
+          description: Petición inválida
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeliveryNote'
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/client/archive/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Identificador único (MongoDB ObjectId)
+    delete:
+      tags:
+        - Client
+      summary: Archivar cliente (soft delete)
+      operationId: archiveClient
+      responses:
+        '200':
+          description: Cliente archivado correctamente
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/client/restore/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Identificador único (MongoDB ObjectId)
+    patch:
+      tags:
+        - Client
+      summary: Restaurar cliente archivado
+      operationId: restoreClient
+      responses:
+        '200':
+          description: Cliente restaurado correctamente
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  /deliverynote:
     get:
-      tags: [DeliveryNote]
+      tags:
+        - DeliveryNote
       summary: Listar albaranes
+      operationId: getDeliveryNotes
       responses:
         '200':
           description: Lista de albaranes
@@ -482,38 +787,476 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DeliveryNote'
-
-  /deliverynote/{id}:
-    parameters:
-      - name: id
-        in: path
+                  type: object
+                  required:
+                    - _id
+                    - userId
+                    - clientId
+                    - projectId
+                    - items
+                    - createdAt
+                  properties:
+                    _id:
+                      type: string
+                      description: Identificador único del albarán
+                    userId:
+                      type: string
+                      description: ID del usuario que creó el albarán
+                    clientId:
+                      type: string
+                      description: ID del cliente asociado al albarán
+                    projectId:
+                      type: string
+                      description: ID del proyecto asociado al albarán
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - type
+                          - description
+                          - quantity
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - hour
+                              - material
+                            description: Tipo de ítem (hora o material)
+                          description:
+                            type: string
+                            description: Detalle o descripción del ítem del albarán
+                          quantity:
+                            type: integer
+                            description: Cantidad del ítem
+                      description: Lista de ítems del albarán (horas o materiales)
+                    isSigned:
+                      type: boolean
+                      description: Indica si el albarán ha sido firmado
+                    signatureUrl:
+                      type: string
+                      description: URL de la imagen de la firma (si está firmado)
+                    createdAt:
+                      type: string
+                      format: date-time
+                      description: Fecha y hora en que se creó el albarán
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+    post:
+      tags:
+        - DeliveryNote
+      summary: Crear albarán
+      operationId: createDeliveryNote
+      requestBody:
         required: true
-        schema:
-          type: string
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - clientId
+                - projectId
+                - items
+              properties:
+                clientId:
+                  type: string
+                  description: ID del cliente asociado al albarán
+                projectId:
+                  type: string
+                  description: ID del proyecto asociado al albarán
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - description
+                      - quantity
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - hour
+                          - material
+                        description: Tipo de ítem (hora o material)
+                      description:
+                        type: string
+                        description: Detalle o descripción del ítem del albarán
+                      quantity:
+                        type: integer
+                        description: Cantidad del ítem
+                  description: Lista de ítems del albarán (horas o materiales)
+      responses:
+        '200':
+          description: Albarán creado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - _id
+                  - userId
+                  - clientId
+                  - projectId
+                  - items
+                  - createdAt
+                properties:
+                  _id:
+                    type: string
+                    description: Identificador único del albarán
+                  userId:
+                    type: string
+                    description: ID del usuario que creó el albarán
+                  clientId:
+                    type: string
+                    description: ID del cliente asociado al albarán
+                  projectId:
+                    type: string
+                    description: ID del proyecto asociado al albarán
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - type
+                        - description
+                        - quantity
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - hour
+                            - material
+                          description: Tipo de ítem (hora o material)
+                        description:
+                          type: string
+                          description: Detalle o descripción del ítem del albarán
+                        quantity:
+                          type: integer
+                          description: Cantidad del ítem
+                    description: Lista de ítems del albarán (horas o materiales)
+                  isSigned:
+                    type: boolean
+                    description: Indica si el albarán ha sido firmado
+                  signatureUrl:
+                    type: string
+                    description: URL de la imagen de la firma (si está firmado)
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Fecha y hora en que se creó el albarán
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/deliverynote/{id}':
     get:
-      tags: [DeliveryNote]
+      tags:
+        - DeliveryNote
       summary: Detalle de un albarán
+      operationId: getDeliveryNote
       responses:
         '200':
           description: Albarán detallado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeliveryNote'
-
-  /deliverynote/pdf/{id}:
-    get:
-      tags: [DeliveryNote]
-      summary: Descargar PDF de albarán
+                type: object
+                required:
+                  - _id
+                  - userId
+                  - clientId
+                  - projectId
+                  - items
+                  - createdAt
+                properties:
+                  _id:
+                    type: string
+                    description: Identificador único del albarán
+                  userId:
+                    type: string
+                    description: ID del usuario que creó el albarán
+                  clientId:
+                    type: string
+                    description: ID del cliente asociado al albarán
+                  projectId:
+                    type: string
+                    description: ID del proyecto asociado al albarán
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - type
+                        - description
+                        - quantity
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - hour
+                            - material
+                          description: Tipo de ítem (hora o material)
+                        description:
+                          type: string
+                          description: Detalle o descripción del ítem del albarán
+                        quantity:
+                          type: integer
+                          description: Cantidad del ítem
+                    description: Lista de ítems del albarán (horas o materiales)
+                  isSigned:
+                    type: boolean
+                    description: Indica si el albarán ha sido firmado
+                  signatureUrl:
+                    type: string
+                    description: URL de la imagen de la firma (si está firmado)
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Fecha y hora en que se creó el albarán
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+    put:
+      tags:
+        - DeliveryNote
+      summary: Actualizar albarán
+      operationId: updateDeliveryNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - clientId
+                - projectId
+                - items
+              properties:
+                clientId:
+                  type: string
+                  description: ID del cliente asociado al albarán
+                projectId:
+                  type: string
+                  description: ID del proyecto asociado al albarán
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - description
+                      - quantity
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - hour
+                          - material
+                        description: Tipo de ítem (hora o material)
+                      description:
+                        type: string
+                        description: Detalle o descripción del ítem del albarán
+                      quantity:
+                        type: integer
+                        description: Cantidad del ítem
+                  description: Lista de ítems del albarán (horas o materiales)
       responses:
         '200':
-          description: PDF generado (application/pdf)
-
-  /deliverynote/sign/{id}:
+          description: Albarán actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  note:
+                    type: object
+                    required:
+                      - _id
+                      - userId
+                      - clientId
+                      - projectId
+                      - items
+                      - createdAt
+                    properties:
+                      _id:
+                        type: string
+                        description: Identificador único del albarán
+                      userId:
+                        type: string
+                        description: ID del usuario que creó el albarán
+                      clientId:
+                        type: string
+                        description: ID del cliente asociado al albarán
+                      projectId:
+                        type: string
+                        description: ID del proyecto asociado al albarán
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - type
+                            - description
+                            - quantity
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - hour
+                                - material
+                              description: Tipo de ítem (hora o material)
+                            description:
+                              type: string
+                              description: Detalle o descripción del ítem del albarán
+                            quantity:
+                              type: integer
+                              description: Cantidad del ítem
+                        description: Lista de ítems del albarán (horas o materiales)
+                      isSigned:
+                        type: boolean
+                        description: Indica si el albarán ha sido firmado
+                      signatureUrl:
+                        type: string
+                        description: URL de la imagen de la firma (si está firmado)
+                      createdAt:
+                        type: string
+                        format: date-time
+                        description: Fecha y hora en que se creó el albarán
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/deliverynote/pdf/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Identificador único (MongoDB ObjectId)
+    get:
+      tags:
+        - DeliveryNote
+      summary: Descargar PDF de albarán
+      operationId: generateDeliveryNotePdf
+      responses:
+        '200':
+          description: PDF generado
+          content:
+            application/pdf: {}
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/deliverynote/sign/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Identificador único (MongoDB ObjectId)
     post:
-      tags: [DeliveryNote]
+      tags:
+        - DeliveryNote
       summary: Firmar albarán
+      operationId: signDeliveryNote
       requestBody:
         required: true
         content:
@@ -527,27 +1270,113 @@ paths:
       responses:
         '200':
           description: Albarán firmado
-
-  # — Mail —
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /mail:
     post:
-      tags: [Mail]
+      tags:
+        - Mail
       summary: Enviar email
+      operationId: sendMail
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MailRequest'
+              type: object
+              required:
+                - from
+                - to
+                - subject
+                - text
+              properties:
+                from:
+                  type: string
+                  format: email
+                  description: Correo electrónico del remitente
+                to:
+                  type: string
+                  format: email
+                  description: Correo electrónico del destinatario
+                subject:
+                  type: string
+                  description: Asunto del correo
+                text:
+                  type: string
+                  description: Cuerpo del mensaje de correo
       responses:
         '200':
           description: Email enviado
-
-  # — Projects —
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: No autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /project:
     get:
-      tags: [Project]
+      tags:
+        - Project
       summary: Listar proyectos activos
+      operationId: getProjects
       responses:
         '200':
           description: Lista de proyectos
@@ -556,28 +1385,125 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Project'
+                  type: object
+                  required:
+                    - _id
+                    - userId
+                    - clientId
+                    - name
+                  properties:
+                    _id:
+                      type: string
+                      description: Identificador único del proyecto
+                    userId:
+                      type: string
+                      description: ID del usuario propietario del proyecto
+                    clientId:
+                      type: string
+                      description: ID del cliente al que pertenece el proyecto
+                    name:
+                      type: string
+                      description: Nombre del proyecto
+                    description:
+                      type: string
+                      description: Descripción detallada del proyecto
+                    archived:
+                      type: boolean
+                      description: Indica si el proyecto está archivado
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
     post:
-      tags: [Project]
+      tags:
+        - Project
       summary: Crear proyecto
+      operationId: addProject
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewProject'
+              type: object
+              required:
+                - name
+                - clientId
+              properties:
+                name:
+                  type: string
+                  description: Nombre del nuevo proyecto
+                clientId:
+                  type: string
+                  description: ID del cliente al que pertenece el proyecto
+                description:
+                  type: string
+                  description: Descripción detallada del proyecto (opcional)
       responses:
         '200':
           description: Proyecto creado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
-
+                type: object
+                required:
+                  - _id
+                  - userId
+                  - clientId
+                  - name
+                properties:
+                  _id:
+                    type: string
+                    description: Identificador único del proyecto
+                  userId:
+                    type: string
+                    description: ID del usuario propietario del proyecto
+                  clientId:
+                    type: string
+                    description: ID del cliente al que pertenece el proyecto
+                  name:
+                    type: string
+                    description: Nombre del proyecto
+                  description:
+                    type: string
+                    description: Descripción detallada del proyecto
+                  archived:
+                    type: boolean
+                    description: Indica si el proyecto está archivado
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /project/archive:
     get:
-      tags: [Project]
+      tags:
+        - Project
       summary: Listar proyectos archivados
+      operationId: getArchivedProjects
       responses:
         '200':
           description: Lista de proyectos archivados
@@ -586,144 +1512,408 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Project'
-
-  /project/{id}:
-    parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
+                  type: object
+                  required:
+                    - _id
+                    - userId
+                    - clientId
+                    - name
+                  properties:
+                    _id:
+                      type: string
+                      description: Identificador único del proyecto
+                    userId:
+                      type: string
+                      description: ID del usuario propietario del proyecto
+                    clientId:
+                      type: string
+                      description: ID del cliente al que pertenece el proyecto
+                    name:
+                      type: string
+                      description: Nombre del proyecto
+                    description:
+                      type: string
+                      description: Descripción detallada del proyecto
+                    archived:
+                      type: boolean
+                      description: Indica si el proyecto está archivado
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/project/{id}':
     get:
-      tags: [Project]
+      tags:
+        - Project
       summary: Obtener proyecto por ID
+      operationId: getProject
       responses:
         '200':
           description: Proyecto encontrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
+                type: object
+                required:
+                  - _id
+                  - userId
+                  - clientId
+                  - name
+                properties:
+                  _id:
+                    type: string
+                    description: Identificador único del proyecto
+                  userId:
+                    type: string
+                    description: ID del usuario propietario del proyecto
+                  clientId:
+                    type: string
+                    description: ID del cliente al que pertenece el proyecto
+                  name:
+                    type: string
+                    description: Nombre del proyecto
+                  description:
+                    type: string
+                    description: Descripción detallada del proyecto
+                  archived:
+                    type: boolean
+                    description: Indica si el proyecto está archivado
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
     put:
-      tags: [Project]
+      tags:
+        - Project
       summary: Actualizar proyecto
+      operationId: updateProject
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewProject'
+              type: object
+              required:
+                - name
+                - clientId
+              properties:
+                name:
+                  type: string
+                  description: Nombre del nuevo proyecto
+                clientId:
+                  type: string
+                  description: ID del cliente al que pertenece el proyecto
+                description:
+                  type: string
+                  description: Descripción detallada del proyecto (opcional)
       responses:
         '200':
           description: Proyecto actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - _id
+                  - userId
+                  - clientId
+                  - name
+                properties:
+                  _id:
+                    type: string
+                    description: Identificador único del proyecto
+                  userId:
+                    type: string
+                    description: ID del usuario propietario del proyecto
+                  clientId:
+                    type: string
+                    description: ID del cliente al que pertenece el proyecto
+                  name:
+                    type: string
+                    description: Nombre del proyecto
+                  description:
+                    type: string
+                    description: Descripción detallada del proyecto
+                  archived:
+                    type: boolean
+                    description: Indica si el proyecto está archivado
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
     delete:
-      tags: [Project]
+      tags:
+        - Project
       summary: Eliminar proyecto
+      operationId: deleteProject
       responses:
         '200':
-          description: Proyecto eliminado
-
-  /project/archive/{id}:
-    patch:
-      tags: [Project]
-      summary: Archivar proyecto
-      responses:
-        '200':
-          description: Proyecto archivado
-
-  /project/restore/{id}:
-    patch:
-      tags: [Project]
-      summary: Restaurar proyecto
-      responses:
-        '200':
-          description: Proyecto restaurado
-
-  # — Storage —
-  /storage:
-    get:
-      tags: [Storage]
-      summary: Listar items
-      responses:
-        '200':
-          description: Lista de items
-    post:
-      tags: [Storage]
-      summary: Crear item (subir archivo)
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-      responses:
-        '200':
-          description: Item creado
-
-  /storage/{id}:
+          description: Proyecto eliminado correctamente
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/project/archive/{id}':
     parameters:
       - name: id
         in: path
         required: true
         schema:
           type: string
-    get:
-      tags: [Storage]
-      summary: Obtener item por ID
+        description: Identificador único (MongoDB ObjectId)
+    patch:
+      tags:
+        - Project
+      summary: Archivar proyecto
+      operationId: archiveProject
       responses:
         '200':
-          description: Item recuperado
-    put:
-      tags: [Storage]
-      summary: Actualizar imagen de item
-      requestBody:
+          description: Proyecto archivado correctamente
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/project/restore/{id}':
+    parameters:
+      - name: id
+        in: path
         required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
+        schema:
+          type: string
+        description: Identificador único (MongoDB ObjectId)
+    patch:
+      tags:
+        - Project
+      summary: Restaurar proyecto
+      operationId: restoreProject
       responses:
         '200':
-          description: Item actualizado
-    delete:
-      tags: [Storage]
-      summary: Eliminar item
-      responses:
-        '200':
-          description: Item eliminado
-
-  # — Users —
+          description: Proyecto restaurado correctamente
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users/me:
     get:
-      tags: [User]
+      tags:
+        - User
       summary: Obtener datos del propio usuario
+      operationId: getUserByToken
       responses:
         '200':
           description: Datos de usuario autenticado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                required:
+                  - _id
+                  - email
+                  - role
+                properties:
+                  _id:
+                    type: string
+                    description: Identificador único del usuario
+                  name:
+                    type: string
+                    description: Nombre de pila del usuario
+                  lastName:
+                    type: string
+                    description: Apellidos del usuario
+                  nif:
+                    type: string
+                    description: Número de identificación fiscal (NIF)
+                  email:
+                    type: string
+                    format: email
+                    description: Correo electrónico del usuario
+                  role:
+                    type: string
+                    enum:
+                      - user
+                      - admin
+                      - guest
+                    description: Rol asignado al usuario
+                  isEmailVerified:
+                    type: boolean
+                    description: Indica si el correo ha sido verificado
+                  status:
+                    type: string
+                    description: 'Estado del usuario (p.ej. pending, active)'
+                  company:
+                    type: object
+                    description: Datos de la empresa asociada (opcional)
+                    properties:
+                      companyName:
+                        type: string
+                        description: Nombre de la empresa
+                      cif:
+                        type: string
+                        description: CIF de la empresa
+                      address:
+                        type: string
+                        description: Dirección de la empresa
+                  logo:
+                    type: string
+                    description: URL del logo del usuario
+                  deleted:
+                    type: boolean
+                    description: Marca si el usuario está eliminado (soft delete)
+        '401':
+          description: No autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
     delete:
-      tags: [User]
+      tags:
+        - User
       summary: Borrar cuenta propia (soft delete)
+      operationId: deleteOwnUser
       responses:
         '200':
           description: Usuario eliminado
-
+        '401':
+          description: No autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users/logo:
     patch:
-      tags: [User]
+      tags:
+        - User
       summary: Actualizar logo de usuario
+      operationId: updateUserLogo
       requestBody:
         required: true
         content:
@@ -737,51 +1927,406 @@ paths:
       responses:
         '200':
           description: Logo actualizado
-
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: No autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users:
     get:
-      tags: [User]
+      tags:
+        - User
       summary: Listar todos los usuarios
+      operationId: getUsers
       responses:
         '200':
           description: Lista de usuarios
-
-  /users/{id}:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - _id
+                    - email
+                    - role
+                  properties:
+                    _id:
+                      type: string
+                      description: Identificador único del usuario
+                    name:
+                      type: string
+                      description: Nombre de pila del usuario
+                    lastName:
+                      type: string
+                      description: Apellidos del usuario
+                    nif:
+                      type: string
+                      description: Número de identificación fiscal (NIF)
+                    email:
+                      type: string
+                      format: email
+                      description: Correo electrónico del usuario
+                    role:
+                      type: string
+                      enum:
+                        - user
+                        - admin
+                        - guest
+                      description: Rol asignado al usuario
+                    isEmailVerified:
+                      type: boolean
+                      description: Indica si el correo ha sido verificado
+                    status:
+                      type: string
+                      description: 'Estado del usuario (p.ej. pending, active)'
+                    company:
+                      type: object
+                      description: Datos de la empresa asociada (opcional)
+                      properties:
+                        companyName:
+                          type: string
+                          description: Nombre de la empresa
+                        cif:
+                          type: string
+                          description: CIF de la empresa
+                        address:
+                          type: string
+                          description: Dirección de la empresa
+                    logo:
+                      type: string
+                      description: URL del logo del usuario
+                    deleted:
+                      type: boolean
+                      description: Marca si el usuario está eliminado (soft delete)
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/users/{id}':
+    get:
+      tags:
+        - User
+      summary: Obtener usuario por ID
+      operationId: getUser
+      responses:
+        '200':
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - _id
+                  - email
+                  - role
+                properties:
+                  _id:
+                    type: string
+                    description: Identificador único del usuario
+                  name:
+                    type: string
+                    description: Nombre de pila del usuario
+                  lastName:
+                    type: string
+                    description: Apellidos del usuario
+                  nif:
+                    type: string
+                    description: Número de identificación fiscal (NIF)
+                  email:
+                    type: string
+                    format: email
+                    description: Correo electrónico del usuario
+                  role:
+                    type: string
+                    enum:
+                      - user
+                      - admin
+                      - guest
+                    description: Rol asignado al usuario
+                  isEmailVerified:
+                    type: boolean
+                    description: Indica si el correo ha sido verificado
+                  status:
+                    type: string
+                    description: 'Estado del usuario (p.ej. pending, active)'
+                  company:
+                    type: object
+                    description: Datos de la empresa asociada (opcional)
+                    properties:
+                      companyName:
+                        type: string
+                        description: Nombre de la empresa
+                      cif:
+                        type: string
+                        description: CIF de la empresa
+                      address:
+                        type: string
+                        description: Dirección de la empresa
+                  logo:
+                    type: string
+                    description: URL del logo del usuario
+                  deleted:
+                    type: boolean
+                    description: Marca si el usuario está eliminado (soft delete)
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+    patch:
+      tags:
+        - User
+      summary: Actualizar usuario (admin)
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - _id
+                - email
+                - role
+              properties:
+                _id:
+                  type: string
+                  description: Identificador único del usuario
+                name:
+                  type: string
+                  description: Nombre de pila del usuario
+                lastName:
+                  type: string
+                  description: Apellidos del usuario
+                nif:
+                  type: string
+                  description: Número de identificación fiscal (NIF)
+                email:
+                  type: string
+                  format: email
+                  description: Correo electrónico del usuario
+                role:
+                  type: string
+                  enum:
+                    - user
+                    - admin
+                    - guest
+                  description: Rol asignado al usuario
+                isEmailVerified:
+                  type: boolean
+                  description: Indica si el correo ha sido verificado
+                status:
+                  type: string
+                  description: 'Estado del usuario (p.ej. pending, active)'
+                company:
+                  type: object
+                  description: Datos de la empresa asociada (opcional)
+                  properties:
+                    companyName:
+                      type: string
+                      description: Nombre de la empresa
+                    cif:
+                      type: string
+                      description: CIF de la empresa
+                    address:
+                      type: string
+                      description: Dirección de la empresa
+                logo:
+                  type: string
+                  description: URL del logo del usuario
+                deleted:
+                  type: boolean
+                  description: Marca si el usuario está eliminado (soft delete)
+      responses:
+        '200':
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - _id
+                  - email
+                  - role
+                properties:
+                  _id:
+                    type: string
+                    description: Identificador único del usuario
+                  name:
+                    type: string
+                    description: Nombre de pila del usuario
+                  lastName:
+                    type: string
+                    description: Apellidos del usuario
+                  nif:
+                    type: string
+                    description: Número de identificación fiscal (NIF)
+                  email:
+                    type: string
+                    format: email
+                    description: Correo electrónico del usuario
+                  role:
+                    type: string
+                    enum:
+                      - user
+                      - admin
+                      - guest
+                    description: Rol asignado al usuario
+                  isEmailVerified:
+                    type: boolean
+                    description: Indica si el correo ha sido verificado
+                  status:
+                    type: string
+                    description: 'Estado del usuario (p.ej. pending, active)'
+                  company:
+                    type: object
+                    description: Datos de la empresa asociada (opcional)
+                    properties:
+                      companyName:
+                        type: string
+                        description: Nombre de la empresa
+                      cif:
+                        type: string
+                        description: CIF de la empresa
+                      address:
+                        type: string
+                        description: Dirección de la empresa
+                  logo:
+                    type: string
+                    description: URL del logo del usuario
+                  deleted:
+                    type: boolean
+                    description: Marca si el usuario está eliminado (soft delete)
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+    delete:
+      tags:
+        - User
+      summary: Borrar usuario (admin)
+      operationId: deleteUser
+      responses:
+        '200':
+          description: Usuario eliminado
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  '/users/role/{id}':
     parameters:
       - name: id
         in: path
         required: true
         schema:
           type: string
-    get:
-      tags: [User]
-      summary: Obtener usuario por ID
-      responses:
-        '200':
-          description: Usuario encontrado
+        description: Identificador único (MongoDB ObjectId)
     patch:
-      tags: [User]
-      summary: Actualizar usuario (admin)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-      responses:
-        '200':
-          description: Usuario actualizado
-    delete:
-      tags: [User]
-      summary: Borrar usuario (admin)
-      responses:
-        '200':
-          description: Usuario eliminado
-
-  /users/role/{id}:
-    patch:
-      tags: [User]
+      tags:
+        - User
       summary: Actualizar rol de usuario (admin)
+      operationId: updateUserRole
       requestBody:
         required: true
         content:
@@ -791,14 +2336,50 @@ paths:
               properties:
                 role:
                   type: string
+              required:
+                - role
       responses:
         '200':
           description: Rol actualizado
-
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users/validate-email:
     post:
-      tags: [User]
+      tags:
+        - User
       summary: Verificar email con código
+      operationId: validateEmail
       requestBody:
         required: true
         content:
@@ -808,14 +2389,61 @@ paths:
               properties:
                 code:
                   type: string
+              required:
+                - code
       responses:
         '200':
           description: Email verificado
-
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: No autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users/onboarding/personal:
     patch:
-      tags: [User]
+      tags:
+        - User
       summary: Completar datos personales
+      operationId: onboardingPersonal
       requestBody:
         required: true
         content:
@@ -829,14 +2457,52 @@ paths:
                   type: string
                 nif:
                   type: string
+              required:
+                - name
+                - lastName
+                - nif
       responses:
         '200':
           description: Onboarding personal completado
-
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: No autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users/onboarding/company:
     patch:
-      tags: [User]
+      tags:
+        - User
       summary: Completar datos de la compañía
+      operationId: onboardingCompany
       requestBody:
         required: true
         content:
@@ -850,14 +2516,52 @@ paths:
                   type: string
                 address:
                   type: string
+              required:
+                - companyName
+                - cif
+                - address
       responses:
         '200':
           description: Onboarding de compañía completado
-
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: No autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users/recover-password-code:
     post:
-      tags: [User]
+      tags:
+        - User
       summary: Solicitar código de recuperación de contraseña
+      operationId: recoverPasswordCode
       requestBody:
         required: true
         content:
@@ -868,16 +2572,50 @@ paths:
                 email:
                   type: string
                   format: email
-                currentPassword:
-                  type: string
+              required:
+                - email
       responses:
         '200':
           description: Código enviado
-
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users/change-password:
     post:
-      tags: [User]
+      tags:
+        - User
       summary: Cambiar contraseña con código
+      operationId: changePassword
       requestBody:
         required: true
         content:
@@ -892,14 +2630,52 @@ paths:
                   type: string
                 newPassword:
                   type: string
+              required:
+                - email
+                - recoveryCode
+                - newPassword
       responses:
         '200':
           description: Contraseña actualizada
-
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /users/invite:
     post:
-      tags: [User]
+      tags:
+        - User
       summary: Invitar nuevo usuario (admin)
+      operationId: inviteUser
       requestBody:
         required: true
         content:
@@ -910,6 +2686,598 @@ paths:
                 email:
                   type: string
                   format: email
+              required:
+                - email
       responses:
         '200':
           description: Invitación enviada
+        '400':
+          description: Petición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '409':
+          description: Conflicto (recurso existente)
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno de servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 3
+          description: Nombre del usuario (mínimo 3 caracteres)
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del usuario
+        password:
+          type: string
+          minLength: 8
+          maxLength: 16
+          description: Contraseña del usuario (8–16 caracteres)
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del usuario
+        password:
+          type: string
+          description: Contraseña del usuario
+    AuthResponse:
+      type: object
+      required:
+        - token
+        - user
+      properties:
+        token:
+          type: string
+          description: Token JWT emitido tras autenticación
+        user:
+          description: Información del usuario autenticado
+          type: object
+          required:
+            - _id
+            - email
+            - role
+          properties:
+            _id:
+              type: string
+              description: Identificador único del usuario
+            name:
+              type: string
+              description: Nombre de pila del usuario
+            lastName:
+              type: string
+              description: Apellidos del usuario
+            nif:
+              type: string
+              description: Número de identificación fiscal (NIF)
+            email:
+              type: string
+              format: email
+              description: Correo electrónico del usuario
+            role:
+              type: string
+              enum:
+                - user
+                - admin
+                - guest
+              description: Rol asignado al usuario
+            isEmailVerified:
+              type: boolean
+              description: Indica si el correo ha sido verificado
+            status:
+              type: string
+              description: 'Estado del usuario (p.ej. pending, active)'
+            company:
+              type: object
+              description: Datos de la empresa asociada (opcional)
+              properties:
+                companyName:
+                  type: string
+                  description: Nombre de la empresa
+                cif:
+                  type: string
+                  description: CIF de la empresa
+                address:
+                  type: string
+                  description: Dirección de la empresa
+            logo:
+              type: string
+              description: URL del logo del usuario
+            deleted:
+              type: boolean
+              description: Marca si el usuario está eliminado (soft delete)
+    User:
+      type: object
+      required:
+        - _id
+        - email
+        - role
+      properties:
+        _id:
+          type: string
+          description: Identificador único del usuario
+        name:
+          type: string
+          description: Nombre de pila del usuario
+        lastName:
+          type: string
+          description: Apellidos del usuario
+        nif:
+          type: string
+          description: Número de identificación fiscal (NIF)
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del usuario
+        role:
+          type: string
+          enum:
+            - user
+            - admin
+            - guest
+          description: Rol asignado al usuario
+        isEmailVerified:
+          type: boolean
+          description: Indica si el correo ha sido verificado
+        status:
+          type: string
+          description: 'Estado del usuario (p.ej. pending, active)'
+        company:
+          type: object
+          description: Datos de la empresa asociada (opcional)
+          properties:
+            companyName:
+              type: string
+              description: Nombre de la empresa
+            cif:
+              type: string
+              description: CIF de la empresa
+            address:
+              type: string
+              description: Dirección de la empresa
+        logo:
+          type: string
+          description: URL del logo del usuario
+        deleted:
+          type: boolean
+          description: Marca si el usuario está eliminado (soft delete)
+    Address:
+      type: object
+      required:
+        - street
+        - number
+        - postal
+        - city
+        - province
+      properties:
+        street:
+          type: string
+          description: Nombre de la calle
+        number:
+          type: integer
+          description: Número de puerta o edificio
+        postal:
+          type: integer
+          description: Código postal
+        city:
+          type: string
+          description: Ciudad
+        province:
+          type: string
+          description: Provincia o región
+    Client:
+      type: object
+      required:
+        - _id
+        - userId
+        - name
+        - cif
+        - address
+      properties:
+        _id:
+          type: string
+          description: Identificador único del cliente
+        userId:
+          type: string
+          description: ID del usuario propietario del cliente
+        name:
+          type: string
+          description: Nombre del cliente
+        cif:
+          type: string
+          description: Código fiscal del cliente
+        address:
+          description: Dirección completa del cliente
+          type: object
+          required:
+            - street
+            - number
+            - postal
+            - city
+            - province
+          properties:
+            street:
+              type: string
+              description: Nombre de la calle
+            number:
+              type: integer
+              description: Número de puerta o edificio
+            postal:
+              type: integer
+              description: Código postal
+            city:
+              type: string
+              description: Ciudad
+            province:
+              type: string
+              description: Provincia o región
+        logo:
+          type: string
+          description: URL del logo del cliente
+        activeProjects:
+          type: integer
+          description: Número de proyectos activos
+        pendingDeliveryNotes:
+          type: integer
+          description: Número de albaranes pendientes
+        archivedProjects:
+          type: integer
+          description: Número de proyectos archivados
+        archived:
+          type: boolean
+          description: Indica si el cliente está archivado
+    NewClient:
+      type: object
+      required:
+        - name
+        - cif
+        - address
+      properties:
+        name:
+          type: string
+          description: Nombre del nuevo cliente
+        cif:
+          type: string
+          description: Código fiscal del nuevo cliente
+        address:
+          description: Dirección del nuevo cliente
+          type: object
+          required:
+            - street
+            - number
+            - postal
+            - city
+            - province
+          properties:
+            street:
+              type: string
+              description: Nombre de la calle
+            number:
+              type: integer
+              description: Número de puerta o edificio
+            postal:
+              type: integer
+              description: Código postal
+            city:
+              type: string
+              description: Ciudad
+            province:
+              type: string
+              description: Provincia o región
+    Project:
+      type: object
+      required:
+        - _id
+        - userId
+        - clientId
+        - name
+      properties:
+        _id:
+          type: string
+          description: Identificador único del proyecto
+        userId:
+          type: string
+          description: ID del usuario propietario del proyecto
+        clientId:
+          type: string
+          description: ID del cliente al que pertenece el proyecto
+        name:
+          type: string
+          description: Nombre del proyecto
+        description:
+          type: string
+          description: Descripción detallada del proyecto
+        archived:
+          type: boolean
+          description: Indica si el proyecto está archivado
+    NewProject:
+      type: object
+      required:
+        - name
+        - clientId
+      properties:
+        name:
+          type: string
+          description: Nombre del nuevo proyecto
+        clientId:
+          type: string
+          description: ID del cliente al que pertenece el proyecto
+        description:
+          type: string
+          description: Descripción detallada del proyecto (opcional)
+    DeliveryNoteItem:
+      type: object
+      required:
+        - type
+        - description
+        - quantity
+      properties:
+        type:
+          type: string
+          enum:
+            - hour
+            - material
+          description: Tipo de ítem (hora o material)
+        description:
+          type: string
+          description: Detalle o descripción del ítem del albarán
+        quantity:
+          type: integer
+          description: Cantidad del ítem
+    DeliveryNote:
+      type: object
+      required:
+        - _id
+        - userId
+        - clientId
+        - projectId
+        - items
+        - createdAt
+      properties:
+        _id:
+          type: string
+          description: Identificador único del albarán
+        userId:
+          type: string
+          description: ID del usuario que creó el albarán
+        clientId:
+          type: string
+          description: ID del cliente asociado al albarán
+        projectId:
+          type: string
+          description: ID del proyecto asociado al albarán
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - type
+              - description
+              - quantity
+            properties:
+              type:
+                type: string
+                enum:
+                  - hour
+                  - material
+                description: Tipo de ítem (hora o material)
+              description:
+                type: string
+                description: Detalle o descripción del ítem del albarán
+              quantity:
+                type: integer
+                description: Cantidad del ítem
+          description: Lista de ítems del albarán (horas o materiales)
+        isSigned:
+          type: boolean
+          description: Indica si el albarán ha sido firmado
+        signatureUrl:
+          type: string
+          description: URL de la imagen de la firma (si está firmado)
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha y hora en que se creó el albarán
+    NewDeliveryNote:
+      type: object
+      required:
+        - clientId
+        - projectId
+        - items
+      properties:
+        clientId:
+          type: string
+          description: ID del cliente asociado al albarán
+        projectId:
+          type: string
+          description: ID del proyecto asociado al albarán
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - type
+              - description
+              - quantity
+            properties:
+              type:
+                type: string
+                enum:
+                  - hour
+                  - material
+                description: Tipo de ítem (hora o material)
+              description:
+                type: string
+                description: Detalle o descripción del ítem del albarán
+              quantity:
+                type: integer
+                description: Cantidad del ítem
+          description: Lista de ítems del albarán (horas o materiales)
+    StorageItem:
+      type: object
+      required:
+        - _id
+        - originalName
+        - ipfs
+        - createdAt
+      properties:
+        _id:
+          type: string
+          description: Identificador único del item de almacenamiento
+        originalName:
+          type: string
+          description: Nombre original del archivo subido
+        ipfs:
+          type: string
+          description: URL/IPFS hash donde está almacenado el archivo
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha y hora de creación del registro
+    MailRequest:
+      type: object
+      required:
+        - from
+        - to
+        - subject
+        - text
+      properties:
+        from:
+          type: string
+          format: email
+          description: Correo electrónico del remitente
+        to:
+          type: string
+          format: email
+          description: Correo electrónico del destinatario
+        subject:
+          type: string
+          description: Asunto del correo
+        text:
+          type: string
+          description: Cuerpo del mensaje de correo
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Identificador único (MongoDB ObjectId)
+  responses:
+    BadRequest:
+      description: Petición inválida
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
+    Unauthorized:
+      description: No autenticado o token inválido
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
+    Forbidden:
+      description: Prohibido. No tienes permisos para acceder
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
+    Conflict:
+      description: Conflicto (recurso existente)
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
+    InternalError:
+      description: Error interno de servidor
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

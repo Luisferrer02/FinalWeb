@@ -1,0 +1,28 @@
+# docs/paths/users/getUserByToken.yaml
+get:
+  tags:
+    - User
+  summary: Obtener datos del propio usuario
+  operationId: getUserByToken
+  responses:
+    '200':
+      description: Datos de usuario autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/User.yaml'
+    '401':
+      $ref: '../../components/responses.yaml#/Unauthorized'
+# docs/paths/users/deleteOwnUser.yaml
+delete:
+  tags:
+    - User
+  summary: Borrar cuenta propia (soft delete)
+  operationId: deleteOwnUser
+  responses:
+    '200':
+      description: Usuario eliminado
+    '401':
+      $ref: '../../components/responses.yaml#/Unauthorized'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

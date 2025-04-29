@@ -1,0 +1,47 @@
+# docs/paths/deliverynote/getDeliveryNote.yaml
+get:
+  tags:
+    - DeliveryNote
+  summary: Detalle de un albarán
+  operationId: getDeliveryNote
+  responses:
+    '200':
+      description: Albarán detallado
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/DeliveryNote.yaml'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
+# docs/paths/deliverynote/updateDeliveryNote.yaml
+put:
+  tags:
+    - DeliveryNote
+  summary: Actualizar albarán
+  operationId: updateDeliveryNote
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/NewDeliveryNote.yaml'
+  responses:
+    '200':
+      description: Albarán actualizado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              note:
+                $ref: '../../components/schemas/DeliveryNote.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'

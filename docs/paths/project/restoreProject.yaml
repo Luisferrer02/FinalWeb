@@ -1,0 +1,15 @@
+# docs/paths/project/restoreProject.yaml
+parameters:
+  - $ref: '../../components/parameters.yaml#/IdParam'
+patch:
+  tags:
+    - Project
+  summary: Restaurar proyecto
+  operationId: restoreProject
+  responses:
+    '200':
+      description: Proyecto restaurado correctamente
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalError'
