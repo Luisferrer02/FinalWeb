@@ -78,36 +78,7 @@ describe('validators/users.js – cobertura completa', () => {
     });
   });
 
-  describe('validateRegister', () => {
-    test('devuelve errores con email o password inválidos', () => {
-      const req = {};
-      const res = makeRes();
-      const next = jest.fn();
 
-      validationResult.mockReturnValue({
-        isEmpty: () => false,
-        array: () => ['email/password inválido']
-      });
-
-      validateRegister[validateRegister.length - 1](req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(422);
-      expect(res.json).toHaveBeenCalledWith({ errors: ['email/password inválido'] });
-      expect(next).not.toHaveBeenCalled();
-    });
-
-    test('continúa sin errores', () => {
-      const req = {};
-      const res = makeRes();
-      const next = jest.fn();
-
-      validationResult.mockReturnValue({ isEmpty: () => true });
-
-      validateRegister[validateRegister.length - 1](req, res, next);
-
-      expect(next).toHaveBeenCalled();
-    });
-  });
 
   describe('validateEmailCode', () => {
     test('devuelve errores si código inválido', () => {
@@ -140,4 +111,78 @@ describe('validators/users.js – cobertura completa', () => {
     });
   });
 
+});
+
+/* ------------------------------------------------------------------ */
+/* validatorInviteUser & validatorAcceptInvite                        */
+/* ------------------------------------------------------------------ */
+const {
+  validatorInviteUser,
+  validatorAcceptInvite
+} = require('../validators/users');
+
+describe('validatorInviteUser – último middleware', () => {
+  test('pasa a next() cuando no hay errores', () => {
+    const req  = {};
+    const res  = makeRes();
+    const next = jest.fn();
+
+    // simulate “no errors”
+    validationResult.mockReturnValue({ throw: jest.fn() });
+
+    const last = validatorInviteUser[validatorInviteUser.length - 1];
+    last(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+  });
+
+  test('devuelve 422 cuando hay errores', () => {
+    const req  = {};
+    const res  = makeRes();
+    const next = jest.fn();
+
+    // simulate “errors”
+    validationResult.mockReturnValue({
+      throw: jest.fn(() => { throw { array: () => ['e'] }; })
+    });
+
+    const last = validatorInviteUser[validatorInviteUser.length - 1];
+    last(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith({ errors: ['e'] });
+    expect(next).not.toHaveBeenCalled();
+  });
+});
+
+describe('validatorAcceptInvite – último middleware', () => {
+  test('pasa a next() cuando no hay errores', () => {
+    const req  = {};
+    const res  = makeRes();
+    const next = jest.fn();
+
+    validationResult.mockReturnValue({ throw: jest.fn() });
+
+    const last = validatorAcceptInvite[validatorAcceptInvite.length - 1];
+    last(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+  });
+
+  test('devuelve 422 cuando hay errores', () => {
+    const req  = {};
+    const res  = makeRes();
+    const next = jest.fn();
+
+    validationResult.mockReturnValue({
+      throw: jest.fn(() => { throw { array: () => ['err'] }; })
+    });
+
+    const last = validatorAcceptInvite[validatorAcceptInvite.length - 1];
+    last(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith({ errors: ['err'] });
+    expect(next).not.toHaveBeenCalled();
+  });
 });

@@ -70,14 +70,20 @@ describe("Auth Endpoints", () => {
   });
 
   test("POST /api/users/validate-email - Valida el correo del usuario", async () => {
-    const user = await User.findById(userId);
-    const code = user.emailVerificationCode;
-    expect(code).toHaveLength(6);
+
+        // Creamos manualmente un código y su hash para test
+    const rawCode = '123456';
+    const hash = await encrypt(rawCode, 6);
+    await User.findByIdAndUpdate(userId, {
+      emailVerificationCodeHash: hash,
+      emailVerificationCodeSentAt: new Date(),
+      emailVerificationAttempts: 0
+    });
 
     const res = await request(app)
       .post("/api/users/validate-email")
       .set("Authorization", `Bearer ${token}`)
-      .send({ code });
+      .send({ code: rawCode });
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("message", "Email verificado correctamente");
@@ -123,9 +129,8 @@ describe("Auth Endpoints", () => {
         password: "wrongpassword"
       });
 
-    expect(res.statusCode).toBe(401);
-    expect(res.body).toHaveProperty("error", "INVALID_PASSWORD");
-  });
+          expect(res.statusCode).toBe(401);
+          expect(res.body).toHaveProperty("error", "INVALID_PASSWORD");  });
 
   test("POST /api/auth/login - Login exitoso", async () => {
     const res = await request(app)

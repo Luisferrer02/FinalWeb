@@ -8,6 +8,8 @@ const { tokenSign } = require("../utils/handleJwt");
 const fs = require("fs");
 const path = require("path");
 const { uploadToPinata } = require("../utils/handleUploadIPFS");
+const httpMocks = require('node-mocks-http')
+const { updateLogoClient } = require('../controllers/clients')
 
 // Mock the uploadToPinata function globally
 jest.mock("../utils/handleUploadIPFS", () => ({
@@ -780,3 +782,73 @@ describe("Clients API", () => {
     });
   });
 });
+
+describe('clients controller – updateLogoClient error branches', () => {
+  let req, res
+
+  beforeEach(() => {
+    res = httpMocks.createResponse()
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  test('returns 400 if no file uploaded', async () => {
+    // req.user is present, but req.file is missing
+    req = httpMocks.createRequest({
+      params: { id: '507f1f77bcf86cd799439011' },
+      user:   { _id: 'u1' },
+    })
+
+    await updateLogoClient(req, res)
+
+    expect(res.statusCode).toBe(400)
+    expect(res._getJSONData()).toEqual({ error: 'No se ha subido ningún archivo' })
+  })
+
+  test('returns 401 if no user on req', async () => {
+    // req.file is present, but req.user is missing
+    req = httpMocks.createRequest({
+      params: { id: '507f1f77bcf86cd799439011' },
+      file:   { buffer: Buffer.from(''), originalname: 'logo.png' },
+    })
+
+    await updateLogoClient(req, res)
+
+    expect(res.statusCode).toBe(401)
+    expect(res._getJSONData()).toEqual({ error: 'No autorizado' })
+  })
+
+  test('returns 404 if client not found by findOneAndUpdate', async () => {
+    // happy path until findOneAndUpdate returns null
+    req = httpMocks.createRequest({
+      params: { id: '507f1f77bcf86cd799439011' },
+      user:   { _id: 'u1' },
+      file:   { buffer: Buffer.from(''), originalname: 'logo.png' },
+    })
+    jest.spyOn(Client, 'findOneAndUpdate').mockResolvedValue(null)
+
+    await updateLogoClient(req, res)
+
+    expect(res.statusCode).toBe(404)
+    expect(res._getJSONData()).toEqual({ error: 'Cliente no encontrado' })
+  })
+
+  test('returns 404 on CastError (invalid id)', async () => {
+    // simulate a Mongoose CastError in the catch block
+    req = httpMocks.createRequest({
+      params: { id: 'not-an-objectid' },
+      user:   { _id: 'u1' },
+      file:   { buffer: Buffer.from(''), originalname: 'logo.png' },
+    })
+    const castErr = new Error('Cast to ObjectId failed')
+    castErr.name = 'CastError'
+    jest.spyOn(Client, 'findOneAndUpdate').mockImplementation(() => { throw castErr })
+
+    await updateLogoClient(req, res)
+
+    expect(res.statusCode).toBe(404)
+    expect(res._getJSONData()).toEqual({ error: 'Cliente no encontrado' })
+  })
+})
