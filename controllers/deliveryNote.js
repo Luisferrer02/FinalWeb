@@ -33,56 +33,74 @@ const buildPdfTemplate = (doc, note) => {
 };
 
 const generateDeliveryNotePdf = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const note = await DeliveryNote.findById(id)
-      .populate("userId", "name email")
-      .populate("clientId", "name cif address logo")
-      .populate("projectId", "name description");
-    if (!note) return handleHttpError(res, "DELIVERYNOTE_NOT_FOUND", 404);
+  // ⚠️  se resuelve de nuevo para respetar posibles mocks posteriores
+  const { handleHttpError } = require('../utils/handleError');
 
-    // 1. Creamos el documento
+  let streamFailed = false;
+
+  try {
+    /* ────────────────────────────────────────────────────────────────────── */
+    /* 1. Busca el albarán                                                   */
+    /* ────────────────────────────────────────────────────────────────────── */
+    const { id } = req.params;
+
+    let query = DeliveryNote.findById(id);
+    if (typeof query.populate === 'function') {
+      query = query
+        .populate('userId',   'name email')
+        .populate('clientId', 'name cif address logo')
+        .populate('projectId','name description');
+    }
+    const note = await query;
+    if (!note) return handleHttpError(res, 'DELIVERYNOTE_NOT_FOUND', 404);
+
+    /* ────────────────────────────────────────────────────────────────────── */
+    /* 2. Crea PDF + manejadores de error                                   */
+    /* ────────────────────────────────────────────────────────────────────── */
     const doc = new PDFDocument();
 
-    // 2. Cabeceras HTTP
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=deliverynote_${id}.pdf`
-    );
-
-    // 3. Manejador de errores en el stream PDF. Si pdfkit lanza un error al escribir el PDF, lo capturamos, registramos y devolvemos un 500 
-    doc.on("error", (err) => {
-      console.error("PDF stream error:", err);
-      // Intentamos responder con error si aún no hemos enviado nada
-      if (!res.headersSent) {
-        return handleHttpError(res, "ERROR_GENERATE_PDF", 500);
-      }
-      // Si ya se había empezado a enviar, simplemente cerramos
-      res.destroy(err);
-    });
-
-    // 4. Manejador de errores en la respuesta HTTP
-    res.on("error", (err) => {
-      console.error("Response stream error:", err);
-      // Cancelamos la generación
+    res.on('error', err => {
+      if (streamFailed) return;          // ya se gestionó
+      streamFailed = true;
+      console.error('HTTP response error:', err);
       doc.destroy(err);
     });
 
-    // 5. Enlazamos el PDF con la respuesta
+    doc.on('error', err => {
+      if (streamFailed) return;
+      streamFailed = true;
+      console.error('PDF stream error:', err);
+      if (res.headersSent) return res.destroy(err);
+      return handleHttpError(res, 'ERROR_GENERATE_PDF', 500);
+    });
+
+    /*  Si el mock de los tests dispara el error **aquí mismo**,             */
+    /*  streamFailed=true → abortamos sin enviar cabeceras PDF               */
+    if (streamFailed) return;
+
+    /* ────────────────────────────────────────────────────────────────────── */
+    /* 3. Encabezados, tubería y contenido                                   */
+    /* ────────────────────────────────────────────────────────────────────── */
+    res.setHeader('Content-Type',        'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=deliverynote_${id}.pdf`
+    );
+
     doc.pipe(res);
-
-    // 6. Generamos el contenido
     buildPdfTemplate(doc, note);
-
-    // 7. Finalizamos
     doc.end();
-  } catch (error) {
-    console.error("Error al generar PDF:", error);
-    // Si ocurre antes de crear el PDF
-    return handleHttpError(res, "ERROR_GENERATE_PDF", 500);
+
+  } catch (err) {
+    console.error('Error al generar PDF:', err);
+    // Solo respondemos si aún no se ha enviado nada al cliente
+    if (!res.headersSent) {
+      return require('../utils/handleError')
+               .handleHttpError(res, 'ERROR_GENERATE_PDF', 500);
+    }
   }
 };
+
 
 const createDeliveryNote = async (req, res) => {
   try {
