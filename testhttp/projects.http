@@ -1,11 +1,13 @@
 @baseUrl = http://localhost:3002
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBlYTVjMzQyMzlkYjI3OTk0OGU1N2YiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTc5MDc1NywiZXhwIjoxNzQ1ODc3MTU3fQ.HUHwfiAByeFt24V2pDUTBj-jkMjJpG146hRs5D6gkwQ
+@userId = 680ea5c34239db279948e57f
 
-@projectId = 680b5891152f05f6a21603da
+@clientId = 680ec2c65cbb6f2528f1eb4f
 
-@clientId = 680b563b152f05f6a21603ae
+@projectId = 680ec3ce5cbb6f2528f1eb5c
 
 
+### 1. Crear proyecto
 POST {{baseUrl}}/api/projects
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -16,22 +18,22 @@ Content-Type: application/json
   "description": "Este es un proyecto de prueba"
 }
 
-###
+### 2. Obtener todos los proyectos
 
 GET {{baseUrl}}/api/projects
 Authorization: Bearer {{token}}
 
-###
+### 3. Obtener proyectos archivados
 
 GET {{baseUrl}}/api/projects/archive
 Authorization: Bearer {{token}}
 
-###
+### 4. Obtener proyecto por ID
 
 GET {{baseUrl}}/api/projects/{{projectId}}
 Authorization: Bearer {{token}}
 
-###
+### 5. Actualizar proyecto
 
 PUT {{baseUrl}}/api/projects/{{projectId}}
 Authorization: Bearer {{token}}
@@ -42,20 +44,18 @@ Content-Type: application/json
   "description": "Descripción actualizada"
 }
 
-###
+### 6. Eliminar proyecto
 
 DELETE {{baseUrl}}/api/projects/{{projectId}}
 Authorization: Bearer {{token}}
 
-###
+### 7. Archivar proyecto
 
 PATCH {{baseUrl}}/api/projects/archive/{{projectId}}
 Authorization: Bearer {{token}}
 
 
-###
+### 8. Restaurar proyecto
 
 PATCH {{baseUrl}}/api/projects/restore/{{projectId}}
 Authorization: Bearer {{token}}
-
-###

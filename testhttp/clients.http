@@ -1,9 +1,10 @@
 @baseUrl = http://localhost:3002
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBlYTVjMzQyMzlkYjI3OTk0OGU1N2YiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTc5MDc1NywiZXhwIjoxNzQ1ODc3MTU3fQ.HUHwfiAByeFt24V2pDUTBj-jkMjJpG146hRs5D6gkwQ
+@userId = 680ea5c34239db279948e57f
 
+@clientId = 680ec2c65cbb6f2528f1eb4f
 
-@clientId = 680b563b152f05f6a21603ae
-
+### 1. Crear cliente
 POST {{baseUrl}}/api/clients
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -20,22 +21,22 @@ Content-Type: application/json
   }
 }
 
-###
+### 2. Obtener todos los clientes
 
 GET {{baseUrl}}/api/clients
 Authorization: Bearer {{token}}
 
-###
+### 3. Obtener clientes archivados
 
 GET {{baseUrl}}/api/clients/archive
 Authorization: Bearer {{token}}
 
-###
+### 4. Obtener cliente por ID
 
 GET {{baseUrl}}/api/clients/{{clientId}}
 Authorization: Bearer {{token}}
 
-###
+### 5. Actualizar cliente
 
 PUT {{baseUrl}}/api/clients/{{clientId}}
 Authorization: Bearer {{token}}
@@ -52,22 +53,22 @@ Content-Type: application/json
   }
 }
 
-###
+### 6. Eliminar cliente
 
 DELETE {{baseUrl}}/api/clients/{{clientId}}
 Authorization: Bearer {{token}}
 
-###
+### 7. Archivar cliente
 
 DELETE {{baseUrl}}/api/clients/archive/{{clientId}}
 Authorization: Bearer {{token}}
 
-###
+### 8. Restaurar cliente
 
 PATCH {{baseUrl}}/api/clients/restore/{{clientId}}
 Authorization: Bearer {{token}}
 
-###
+### 9. Actualiza el logo de un cliente
 
 PATCH {{baseUrl}}/api/clients/logo/{{clientId}}
 Authorization: Bearer {{token}}

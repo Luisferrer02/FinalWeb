@@ -1,15 +1,16 @@
 @baseUrl = http://localhost:3002
-@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA3YmUzN2VmZDk5ODdmOGUyZGExYjkiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NTU2OTUyNywiZXhwIjoxNzQ1NjU1OTI3fQ.IeDQ6seqKtofyIJTPF-3ubWop2OEmRD0fK6pMcP48DM
+@tokenFromLogin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODBlYTVjMzQyMzlkYjI3OTk0OGU1N2YiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NDU5MzE0MzgsImV4cCI6MTc0NjAxNzgzOH0.n6PCYgcWsZ_oesZFjMVuAftxc95GQp4UH6xRjkM_BD0
+@userId = 680ea5c34239db279948e57f
 
-@projectId = 680b5891152f05f6a21603da
+@clientId = 680ec2c65cbb6f2528f1eb4f
 
-@clientId = 680b563b152f05f6a21603ae
+@projectId = 680ec3ce5cbb6f2528f1eb5c
 
-@deliveryNoteId = 680b61c0a39403a3763f4ef1
+@deliveryNoteId = 680ec4625cbb6f2528f1eb6b
 
 
 
-### Albaranes:
+### 1. Crear albarán
 
 POST http://localhost:3002/api/deliveryNote
 Content-Type: application/json
@@ -32,22 +33,19 @@ Authorization: Bearer {{tokenFromLogin}}
   ]
 }
 
-###
-
-### 📥 Obtener lista de albaranes
+### 2. Obtener lista de albaranes
 GET http://localhost:3002/api/deliverynote
 Authorization: Bearer {{tokenFromLogin}}
 
-###
-
+### 3. Obtener albarán por ID
 GET http://localhost:3002/api/deliverynote/{{deliveryNoteId}}
 Authorization: Bearer {{tokenFromLogin}}
 
-### 📄 Generar PDF de un albarán
+### 4. Generar PDF de un albarán
 GET http://localhost:3002/api/deliverynote/pdf/{{deliveryNoteId}}
 Authorization: Bearer {{tokenFromLogin}}
 
-### Actualizar un albarán (solo si no está firmado)
+### 5. Actualizar un albarán (solo si no está firmado)
 PUT {{baseUrl}}/api/deliverynote/{{deliveryNoteId}}
 Authorization: Bearer {{tokenFromLogin}}
 Content-Type: application/json
@@ -59,7 +57,7 @@ Content-Type: application/json
   ]
 }
 
-### Firmar un albarán (subida de imagen)
+### 6. Firmar un albarán (subida de imagen)
 POST {{baseUrl}}/api/deliverynote/sign/{{deliveryNoteId}}
 Authorization: Bearer {{tokenFromLogin}}
 Content-Type: multipart/form-data; boundary=MyBoundary
