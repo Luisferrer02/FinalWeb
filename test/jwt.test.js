@@ -1,6 +1,3 @@
-// tests/handleJwt.test.js
-
-// Asegúrate de que el JWT_SECRET está definido
 beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';
   });

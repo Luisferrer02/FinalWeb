@@ -1,5 +1,3 @@
-// tests/handleMails.test.js
-
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 
 const nodemailer = require('nodemailer');
@@ -18,12 +16,10 @@ jest.mock('express-validator', () => ({
   matchedData: jest.fn(),
 }));
 
-// 🔥 ESTE ES EL MOCK NECESARIO 🔥
 jest.mock('../utils/handleMails', () => ({
   sendEmail: jest.fn(),
 }));
 
-// 👇 Importa después de mockear
 const { sendEmail } = require('../utils/handleMails');
 
 const makeRes = () => ({

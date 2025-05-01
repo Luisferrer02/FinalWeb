@@ -1,9 +1,3 @@
-/* tests/users.controller.test.js
-   Cobertura exhaustiva de controllers/users.js                           */
-
-/* ===================================================================== */
-/* 1. MOCKS GLOBALES – se evalúan antes de cargar cualquier módulo       */
-/* ===================================================================== */
 jest.mock("../utils/handleMails", () => ({
   sendEmail: jest.fn().mockResolvedValue(),
 }));
@@ -25,9 +19,6 @@ jest.mock("express-validator", () => ({
   matchedData: jest.fn(),
 }));
 
-/* ===================================================================== */
-/* 2. IMPORTS (con mocks ya activos)                                     */
-/* ===================================================================== */
 const ev = require("express-validator");
 const { usersModel } = require("../models");
 const { uploadToPinata } = require("../utils/handleUploadIPFS");
@@ -50,9 +41,6 @@ const {
   inviteUserCtrl,
 } = require("../controllers/users");
 
-/* ===================================================================== */
-/* 3. HELPERS                                                            */
-/* ===================================================================== */
 const makeRes = () => ({
   status: jest.fn().mockReturnThis(),
   json: jest.fn().mockReturnThis(),
@@ -61,14 +49,7 @@ const makeRes = () => ({
 
 afterEach(() => jest.clearAllMocks());
 
-/* ===================================================================== */
-/* 4. TEST SUITE                                                         */
-/* ===================================================================== */
 describe("controllers/users.js – cobertura completa", () => {
-  
-  /* ------------------------------------------------------------------ */
-  /* getUsers                                                            */
-  /* ------------------------------------------------------------------ */
   test("getUsers → éxito", async () => {
     usersModel.find = jest.fn().mockResolvedValue(["u1"]);
     const res = makeRes();
@@ -84,9 +65,6 @@ describe("controllers/users.js – cobertura completa", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "ERROR_GET_USERS" });
   });
 
-  /* ------------------------------------------------------------------ */
-  /* getUser                                                             */
-  /* ------------------------------------------------------------------ */
   test("getUser → encontrado", async () => {
     const user = { _id: "1" };
     ev.matchedData.mockReturnValueOnce({ id: "1" });
@@ -105,9 +83,6 @@ describe("controllers/users.js – cobertura completa", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "USER_NOT_FOUND" });
   });
 
-  /* ------------------------------------------------------------------ */
-  /* updateUser                                                          */
-  /* ------------------------------------------------------------------ */
   test("updateUser → éxito", async () => {
     const updated = { _id: "1", name: "A" };
     ev.matchedData.mockReturnValueOnce({ id: "1", name: "A" });
@@ -138,9 +113,6 @@ describe("controllers/users.js – cobertura completa", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "ERROR_UPDATE_USER" });
   });
 
-  /* ------------------------------------------------------------------ */
-  /* deleteUser                                                          */
-  /* ------------------------------------------------------------------ */
   test("deleteUser → soft delete OK", async () => {
     const user = { deleted: false, save: jest.fn() };
     const res = makeRes();
@@ -176,9 +148,6 @@ describe("controllers/users.js – cobertura completa", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "ERROR_DELETE_USER" });
   });
 
-  /* ------------------------------------------------------------------ */
-  /* updateUserRoleCtrl                                                  */
-  /* ------------------------------------------------------------------ */
   test("updateUserRoleCtrl → éxito", async () => {
     const updated = { _id: "1", role: "admin" };
     ev.matchedData.mockReturnValueOnce({ id: "1", role: "admin" });
@@ -205,9 +174,6 @@ describe("controllers/users.js – cobertura completa", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "ERROR_UPDATE_USER_ROLE" });
   });
 
-  /* ------------------------------------------------------------------ */
-  /* recoverPasswordCodeCtrl                                             */
-  /* ------------------------------------------------------------------ */
   test("recoverPasswordCodeCtrl → éxito", async () => {
     const usr = { password: "hash", save: jest.fn() };
     ev.matchedData.mockReturnValueOnce({
@@ -239,9 +205,6 @@ describe("controllers/users.js – cobertura completa", () => {
     expect(res.status).toHaveBeenCalledWith(404); // línea 88
   });
 
-  /* ------------------------------------------------------------------ */
-  /* changePasswordCtrl                                                  */
-  /* ------------------------------------------------------------------ */
   test("changePasswordCtrl → éxito", async () => {
     const usr = { passwordRecoveryCode: "OK", save: jest.fn() };
     ev.matchedData.mockReturnValueOnce({
@@ -294,18 +257,13 @@ describe("controllers/users.js – cobertura completa", () => {
     expect(res.status).toHaveBeenCalledWith(404); // línea 128
   });
 
-  /* ------------------------------------------------------------------ */
-  /* validateEmailCtrl                                                   */
-  /* ------------------------------------------------------------------ */
   test("validateEmailCtrl → INVALID_CODE_FORMAT", async () => {
     const res = makeRes();
     await validateEmailCtrl({ user: { _id: "u1" } }, makeRes()); // si no encuentra user en BD -> 404
   });
 
   test("validateEmailCtrl → INVALID_CODE", async () => {
-    // 1) matchedData devuelve el código
     ev.matchedData.mockReturnValueOnce({ code: "ZZZZZZ" });
-    // 2) findById().select(...) devuelve usuario con hash y contador
     const dbUser = {
       emailVerificationCodeHash: "hash",
       emailVerificationAttempts: 0,
@@ -314,7 +272,6 @@ describe("controllers/users.js – cobertura completa", () => {
     usersModel.findById = jest.fn().mockReturnValue({
       select: jest.fn().mockResolvedValue(dbUser),
     });
-    // 3) forzamos compare a false
     pwdUtils.compare.mockResolvedValueOnce(false);
 
     const res = makeRes();
@@ -325,27 +282,26 @@ describe("controllers/users.js – cobertura completa", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "INVALID_CODE" });
   });
 
-test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
-  // 1) matchedData devuelve cualquier código
-  ev.matchedData.mockReturnValueOnce({ code: "ABCDEF" });
+  test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
+    ev.matchedData.mockReturnValueOnce({ code: "ABCDEF" });
 
-  // 2) findById().select() responde con un usuario SIN hash
-  const dbUser = {
-    emailVerificationCodeHash: null,
-    save: jest.fn(),                // no debería llamarse
-  };
-  usersModel.findById = jest.fn().mockReturnValue({
-    select: jest.fn().mockResolvedValue(dbUser),
+    const dbUser = {
+      emailVerificationCodeHash: null,
+      save: jest.fn(),
+    };
+    usersModel.findById = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue(dbUser),
+    });
+
+    const res = makeRes();
+    await validateEmailCtrl({ user: { _id: "u1" } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "NO_VERIFICATION_CODE_SENT",
+    });
+    expect(dbUser.save).not.toHaveBeenCalled();
   });
-
-  const res = makeRes();
-  await validateEmailCtrl({ user: { _id: "u1" } }, res);
-
-  expect(res.status).toHaveBeenCalledWith(400);
-  expect(res.json).toHaveBeenCalledWith({ error: "NO_VERIFICATION_CODE_SENT" });
-  expect(dbUser.save).not.toHaveBeenCalled(); // opcional, asegura que no se guarda
-});
-
 
   test("validateEmailCtrl → éxito", async () => {
     const dbUser = {
@@ -369,9 +325,6 @@ test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
     });
   });
 
-  /* ------------------------------------------------------------------ */
-  /* onboardingPersonalCtrl                                              */
-  /* ------------------------------------------------------------------ */
   test("onboardingPersonalCtrl → éxito", async () => {
     const usr = { name: "A", lastName: "B", nif: "1", save: jest.fn() };
     ev.matchedData.mockReturnValueOnce({ name: "N", lastName: "L", nif: "2" });
@@ -387,9 +340,6 @@ test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
     expect(res.status).toHaveBeenCalledWith(404); // línea 168
   });
 
-  /* ------------------------------------------------------------------ */
-  /* onboardingCompanyCtrl                                               */
-  /* ------------------------------------------------------------------ */
   test("onboardingCompanyCtrl → éxito", async () => {
     const usr = { company: {}, save: jest.fn() };
     ev.matchedData.mockReturnValueOnce({
@@ -409,9 +359,6 @@ test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
     expect(res.status).toHaveBeenCalledWith(404); // línea 198
   });
 
-  /* ------------------------------------------------------------------ */
-  /* updateLogoCtrl                                                      */
-  /* ------------------------------------------------------------------ */
   test("updateLogoCtrl → NO_FILE_UPLOADED", async () => {
     const res = makeRes();
     await updateLogoCtrl({ user: {}, file: null }, res);
@@ -432,7 +379,6 @@ test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
-
   test("updateLogoCtrl → éxito", async () => {
     process.env.PINATA_GATEWAY_URL = "gateway.pinata.cloud";
     uploadToPinata.mockResolvedValueOnce({ IpfsHash: "Qm123" });
@@ -449,9 +395,6 @@ test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
     });
   });
 
-  /* ------------------------------------------------------------------ */
-  /* getUserByTokenCtrl                                                  */
-  /* ------------------------------------------------------------------ */
   test("getUserByTokenCtrl → éxito", async () => {
     const res = makeRes();
     await getUserByTokenCtrl({ user: { id: 1 } }, res);
@@ -464,14 +407,14 @@ test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
     expect(res.status).toHaveBeenCalledWith(404); // línea 267‑279
   });
 
-  /* ------------------------------------------------------------------ */
-  /* inviteUserCtrl                                                      */
-  /* ------------------------------------------------------------------ */
   test("inviteUserCtrl → éxito", async () => {
     ev.matchedData.mockReturnValueOnce({ email: "new@x.com" });
     usersModel.findOne = jest.fn().mockResolvedValue(null);
     // Devolvemos un invitedUser con método save
-    const invitedUser = { email: "new@x.com", save: jest.fn().mockResolvedValue() };
+    const invitedUser = {
+      email: "new@x.com",
+      save: jest.fn().mockResolvedValue(),
+    };
     usersModel.create = jest.fn().mockResolvedValue(invitedUser);
     pwdUtils.encrypt.mockResolvedValueOnce("hash");
 
@@ -504,10 +447,15 @@ test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
   });
 
   test("inviteUserCtrl → sendEmail.catch registra error", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     ev.matchedData.mockReturnValueOnce({ email: "mail@x.com" });
     usersModel.findOne = jest.fn().mockResolvedValue(null);
-    const invitedUser = { email: "mail@x.com", save: jest.fn().mockResolvedValue() };
+    const invitedUser = {
+      email: "mail@x.com",
+      save: jest.fn().mockResolvedValue(),
+    };
     usersModel.create = jest.fn().mockResolvedValue(invitedUser);
     pwdUtils.encrypt.mockResolvedValueOnce("hash");
     sendEmail.mockRejectedValueOnce(new Error("smtp down"));
@@ -524,250 +472,258 @@ test("validateEmailCtrl → NO_VERIFICATION_CODE_SENT", async () => {
     consoleSpy.mockRestore();
   });
 
-
   test("inviteUserCtrl → USER_NOT_FOUND (sin invitador)", async () => {
     const res = makeRes();
     await inviteUserCtrl({ user: null }, res);
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
+  describe("coverage extra – ramas restantes", () => {
+    /* helper res reutilizado */
+    const makeRes = () => ({
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    });
 
-describe("coverage extra – ramas restantes", () => {
-  /* helper res reutilizado */
-  const makeRes = () => ({
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
-    send: jest.fn().mockReturnThis(),
-  });
+    /* -------------------------------------------------------------- */
+    /* 1) onboardingPersonalCtrl – ningún dato nuevo ⇒ mantiene prev. */
+    /* -------------------------------------------------------------- */
+    test("onboardingPersonalCtrl ⇢ campos vacíos conservan valores", async () => {
+      const usr = { name: "Old", lastName: "Ln", nif: "1", save: jest.fn() };
+      // matchedData devuelve objeto vacío  ➜ se evalúan los OR fallback
+      ev.matchedData.mockReturnValueOnce({});
+      const res = makeRes();
 
-  /* -------------------------------------------------------------- */
-  /* 1) onboardingPersonalCtrl – ningún dato nuevo ⇒ mantiene prev. */
-  /* -------------------------------------------------------------- */
-  test("onboardingPersonalCtrl ⇢ campos vacíos conservan valores", async () => {
-    const usr = { name: "Old", lastName: "Ln", nif: "1", save: jest.fn() };
-    // matchedData devuelve objeto vacío  ➜ se evalúan los OR fallback
-    ev.matchedData.mockReturnValueOnce({});
-    const res = makeRes();
+      await onboardingPersonalCtrl({ user: usr }, res);
 
-    await onboardingPersonalCtrl({ user: usr }, res);
+      expect(usr.name).toBeUndefined();
+      expect(usr.lastName).toBeUndefined();
+      expect(usr.nif).toBeUndefined();
+      expect(usr.save).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Datos personales actualizados",
+        user: usr,
+      });
+    });
 
-    expect(usr.name).toBeUndefined();
-    expect(usr.lastName).toBeUndefined();
-    expect(usr.nif).toBeUndefined();
-    expect(usr.save).toHaveBeenCalled();
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Datos personales actualizados",
-      user: usr,
+    /* -------------------------------------------------------------- */
+    /* 2) onboardingCompanyCtrl – sin campos ⇒ usa valores existentes */
+    /* -------------------------------------------------------------- */
+    test("onboardingCompanyCtrl ⇢ sin datos usa company previa", async () => {
+      const usr = {
+        company: { companyName: "ACME", cif: "B1", address: "DIR" },
+        save: jest.fn(),
+      };
+      ev.matchedData.mockReturnValueOnce({}); // no llega nada en body
+      const res = makeRes();
+
+      await onboardingCompanyCtrl({ user: usr }, res);
+
+      expect(usr.company.companyName).toBeUndefined();
+      expect(usr.company.cif).toBeUndefined();
+      expect(usr.company.address).toBeUndefined();
+      expect(usr.save).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Datos de la compañía actualizados",
+        company: usr.company,
+      });
+    });
+
+    /* -------------------------------------------------------------- */
+    /* 3) validateEmailCtrl – USER_NOT_FOUND                          */
+    /* -------------------------------------------------------------- */
+    test("validateEmailCtrl ⇢ USER_NOT_FOUND", async () => {
+      ev.matchedData.mockReturnValueOnce({ code: "123456" });
+      usersModel.findById = jest.fn().mockReturnValue({
+        select: jest.fn().mockResolvedValue(null),
+      });
+
+      const res = makeRes();
+      await validateEmailCtrl({ user: { _id: "u1" } }, res);
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "USER_NOT_FOUND" });
     });
   });
 
-  /* -------------------------------------------------------------- */
-  /* 2) onboardingCompanyCtrl – sin campos ⇒ usa valores existentes */
-  /* -------------------------------------------------------------- */
-  test("onboardingCompanyCtrl ⇢ sin datos usa company previa", async () => {
-    const usr = {
-      company: { companyName: "ACME", cif: "B1", address: "DIR" },
-      save: jest.fn(),
-    };
-    ev.matchedData.mockReturnValueOnce({}); // no llega nada en body
-    const res = makeRes();
+  describe("controllers/users.js – catch blocks restantes", () => {
+    const makeRes = () => ({
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    });
 
-    await onboardingCompanyCtrl({ user: usr }, res);
+    /* --- getUser → ERROR_GET_USER ------------------------------------ */
+    test("getUser ⇢ matchedData lanza ⇒ ERROR_GET_USER", async () => {
+      // forzamos que la búsqueda en BD falle
+      usersModel.findById = jest.fn().mockImplementation(() => {
+        throw new Error("boom");
+      });
+      const res = makeRes();
+      await getUser({}, res);
 
-    expect(usr.company.companyName).toBeUndefined();
-    expect(usr.company.cif).toBeUndefined();
-    expect(usr.company.address).toBeUndefined();
-    expect(usr.save).toHaveBeenCalled();
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Datos de la compañía actualizados",
-      company: usr.company,
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "ERROR_GET_USER" });
+    });
+
+    /* --- recoverPasswordCodeCtrl → ERROR_RECOVER_PASSWORD ------------ */
+    test("recoverPasswordCodeCtrl ⇢ findOne lanza ⇒ ERROR_RECOVER_PASSWORD", async () => {
+      ev.matchedData.mockReturnValueOnce({
+        email: "a@a",
+        currentPassword: "x",
+        from: "",
+      });
+      usersModel.findOne = jest.fn().mockRejectedValue(new Error("db down"));
+      const res = makeRes();
+      await recoverPasswordCodeCtrl({}, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "ERROR_RECOVER_PASSWORD",
+      });
+    });
+
+    /* --- changePasswordCtrl → ERROR_CHANGE_PASSWORD ------------------ */
+    test("changePasswordCtrl ⇢ findOne lanza ⇒ ERROR_CHANGE_PASSWORD", async () => {
+      ev.matchedData.mockReturnValueOnce({
+        email: "a@a",
+        recoveryCode: "1",
+        newPassword: "X",
+      });
+      usersModel.findOne = jest.fn().mockReturnValue({
+        select: jest.fn().mockRejectedValue(new Error("db down")),
+      });
+      const res = makeRes();
+      await changePasswordCtrl({}, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "ERROR_CHANGE_PASSWORD" });
+    });
+
+    /* --- validateEmailCtrl → ERROR_VERIFY_EMAIL ---------------------- */
+    test("validateEmailCtrl ⇢ user.save lanza ⇒ ERROR_VERIFY_EMAIL", async () => {
+      ev.matchedData.mockReturnValueOnce({ code: "ABC123" });
+
+      const dbUser = {
+        emailVerificationCodeHash: "hash", // para saltarse el NO_VERIFICATION_CODE_SENT
+        save: jest.fn().mockRejectedValue(new Error("DB fail")),
+      };
+      usersModel.findById = jest.fn().mockReturnValue({
+        select: jest.fn().mockResolvedValue(dbUser),
+      });
+
+      const res = makeRes();
+      await validateEmailCtrl({ user: { _id: "u1" } }, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "ERROR_VERIFY_EMAIL" });
+    });
+
+    /* --- onboardingPersonalCtrl → ERROR_UPDATE_USER ------------------ */
+    test("onboardingPersonalCtrl ⇢ save lanza ⇒ ERROR_UPDATE_USER", async () => {
+      const usr = { save: jest.fn().mockRejectedValue(new Error()) };
+      ev.matchedData.mockReturnValueOnce({ name: "N" });
+      const res = makeRes();
+      await onboardingPersonalCtrl({ user: usr }, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "ERROR_UPDATE_USER" });
+    });
+
+    /* --- onboardingCompanyCtrl → ERROR_UPDATE_COMPANY ---------------- */
+    test("onboardingCompanyCtrl ⇢ save lanza ⇒ ERROR_UPDATE_COMPANY", async () => {
+      const usr = {
+        company: {},
+        save: jest.fn().mockRejectedValue(new Error()),
+      };
+      ev.matchedData.mockReturnValueOnce({ companyName: "ACME" });
+      const res = makeRes();
+      await onboardingCompanyCtrl({ user: usr }, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "ERROR_UPDATE_COMPANY" });
+    });
+
+    /* --- updateLogoCtrl → ERROR_UPDATE_LOGO -------------------------- */
+    test("updateLogoCtrl ⇢ uploadToPinata lanza ⇒ ERROR_UPDATE_LOGO", async () => {
+      const { uploadToPinata } = require("../utils/handleUploadIPFS");
+      uploadToPinata.mockRejectedValueOnce(new Error("ipfs fail"));
+      const usr = { save: jest.fn() };
+      const req = {
+        user: usr,
+        file: { buffer: Buffer.from("x"), originalname: "l.png", size: 10 },
+      };
+      const res = makeRes();
+      await updateLogoCtrl(req, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "ERROR_UPDATE_LOGO" });
+    });
+
+    /* --- getUserByTokenCtrl → ERROR_GET_USER ------------------------- */
+    test("getUserByTokenCtrl ⇢ res.json lanza ⇒ ERROR_GET_USER", async () => {
+      const res = makeRes();
+      res.json.mockImplementationOnce(() => {
+        throw new Error("serializer");
+      });
+      await getUserByTokenCtrl({ user: { id: 1 } }, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "ERROR_GET_USER" });
     });
   });
 
-  /* -------------------------------------------------------------- */
-  /* 3) validateEmailCtrl – USER_NOT_FOUND                          */
-  /* -------------------------------------------------------------- */
-  test("validateEmailCtrl ⇢ USER_NOT_FOUND", async () => {
-    ev.matchedData.mockReturnValueOnce({ code: "123456" });
-    usersModel.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(null),
+  describe("controllers/users.js – sendEmail.catch internos", () => {
+    const makeRes = () => ({
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
     });
 
-    const res = makeRes();
-    await validateEmailCtrl({ user: { _id: "u1" } }, res);
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ error: "USER_NOT_FOUND" });
-  });
-});
+    /* ------------------------------------------------------------------ */
+    /* changePasswordCtrl – sendEmail falla                               */
+    /* ------------------------------------------------------------------ */
+    test("changePasswordCtrl ⇢ sendEmail.catch registra error", async () => {
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      ev.matchedData.mockReturnValueOnce({
+        email: "u@x.com",
+        recoveryCode: "OK123",
+        newPassword: "NewPass1",
+      });
+      // Mockeamos findOne().select() para devolver user válido
+      const user = { save: jest.fn().mockResolvedValue() };
+      usersModel.findOne = jest.fn().mockReturnValue({
+        select: jest
+          .fn()
+          .mockResolvedValue({ ...user, passwordRecoveryCodeHash: "hash" }),
+      });
+      pwdUtils.compare.mockResolvedValueOnce(true);
+      pwdUtils.encrypt.mockResolvedValueOnce("newHash");
+      sendEmail.mockRejectedValueOnce(new Error("smtp fail"));
 
-/* ===================================================================== */
-/* 5. Ramas de catch que aún faltaban (líneas “grises”)                  */
-/* ===================================================================== */
-describe("controllers/users.js – catch blocks restantes", () => {
-  const makeRes = () => ({
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
-    send: jest.fn().mockReturnThis(),
-  });
+      const res = makeRes();
+      await changePasswordCtrl({}, res);
 
-  /* --- getUser → ERROR_GET_USER ------------------------------------ */
-  test("getUser ⇢ matchedData lanza ⇒ ERROR_GET_USER", async () => {
-    // forzamos que la búsqueda en BD falle
-    usersModel.findById = jest.fn().mockImplementation(() => {
-      throw new Error("boom");
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error en changePasswordCtrl:",
+        expect.any(Error)
+      );
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "ERROR_CHANGE_PASSWORD" });
+      consoleSpy.mockRestore();
     });
-    const res = makeRes();
-    await getUser({}, res);
-  
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_GET_USER" });
-  });
-  
-  /* --- recoverPasswordCodeCtrl → ERROR_RECOVER_PASSWORD ------------ */
-  test("recoverPasswordCodeCtrl ⇢ findOne lanza ⇒ ERROR_RECOVER_PASSWORD", async () => {
-    ev.matchedData.mockReturnValueOnce({
-      email: "a@a",
-      currentPassword: "x",
-      from: "",
-    });
-    usersModel.findOne = jest.fn().mockRejectedValue(new Error("db down"));
-    const res = makeRes();
-    await recoverPasswordCodeCtrl({}, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_RECOVER_PASSWORD" });
   });
 
-  /* --- changePasswordCtrl → ERROR_CHANGE_PASSWORD ------------------ */
-  test("changePasswordCtrl ⇢ findOne lanza ⇒ ERROR_CHANGE_PASSWORD", async () => {
-    ev.matchedData.mockReturnValueOnce({
-      email: "a@a",
-      recoveryCode: "1",
-      newPassword: "X",
-    });
-        usersModel.findOne = jest.fn().mockReturnValue({
-            select: jest.fn().mockRejectedValue(new Error("db down")),
-          });    const res = makeRes();
-    await changePasswordCtrl({}, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_CHANGE_PASSWORD" });
-  });
-
-  /* --- validateEmailCtrl → ERROR_VERIFY_EMAIL ---------------------- */
-  test("validateEmailCtrl ⇢ user.save lanza ⇒ ERROR_VERIFY_EMAIL", async () => {
-    ev.matchedData.mockReturnValueOnce({ code: "ABC123" });
-  
-    const dbUser = {
-      emailVerificationCodeHash: "hash",            // para saltarse el NO_VERIFICATION_CODE_SENT
-      save: jest.fn().mockRejectedValue(new Error("DB fail")),
-    };
-    usersModel.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(dbUser),
-    });
-  
-    const res = makeRes();
-    await validateEmailCtrl({ user: { _id: "u1" } }, res);
-  
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_VERIFY_EMAIL" });
-  });
-  
-
-  /* --- onboardingPersonalCtrl → ERROR_UPDATE_USER ------------------ */
-  test("onboardingPersonalCtrl ⇢ save lanza ⇒ ERROR_UPDATE_USER", async () => {
-    const usr = { save: jest.fn().mockRejectedValue(new Error()) };
-    ev.matchedData.mockReturnValueOnce({ name: "N" });
-    const res = makeRes();
-    await onboardingPersonalCtrl({ user: usr }, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_UPDATE_USER" });
-  });
-
-  /* --- onboardingCompanyCtrl → ERROR_UPDATE_COMPANY ---------------- */
-  test("onboardingCompanyCtrl ⇢ save lanza ⇒ ERROR_UPDATE_COMPANY", async () => {
-    const usr = { company: {}, save: jest.fn().mockRejectedValue(new Error()) };
-    ev.matchedData.mockReturnValueOnce({ companyName: "ACME" });
-    const res = makeRes();
-    await onboardingCompanyCtrl({ user: usr }, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_UPDATE_COMPANY" });
-  });
-
-  /* --- updateLogoCtrl → ERROR_UPDATE_LOGO -------------------------- */
-  test("updateLogoCtrl ⇢ uploadToPinata lanza ⇒ ERROR_UPDATE_LOGO", async () => {
-    const { uploadToPinata } = require("../utils/handleUploadIPFS");
-    uploadToPinata.mockRejectedValueOnce(new Error("ipfs fail"));
-    const usr = { save: jest.fn() };
-    const req = {
-      user: usr,
-      file: { buffer: Buffer.from("x"), originalname: "l.png", size: 10 },
-    };
-    const res = makeRes();
-    await updateLogoCtrl(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_UPDATE_LOGO" });
-  });
-
-  /* --- getUserByTokenCtrl → ERROR_GET_USER ------------------------- */
-  test("getUserByTokenCtrl ⇢ res.json lanza ⇒ ERROR_GET_USER", async () => {
-    const res = makeRes();
-    res.json.mockImplementationOnce(() => {
-      throw new Error("serializer");
-    });
-    await getUserByTokenCtrl({ user: { id: 1 } }, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_GET_USER" });
-  });
-});
-
-/* ===================================================================== */
-/* 6. Cobertura de los console.error dentro de los sendEmail.catch       */
-/* ===================================================================== */
-describe("controllers/users.js – sendEmail.catch internos", () => {
-  const makeRes = () => ({
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
-    send: jest.fn().mockReturnThis(),
-  });
-
-  /* ------------------------------------------------------------------ */
-  /* changePasswordCtrl – sendEmail falla                               */
-  /* ------------------------------------------------------------------ */
-  test("changePasswordCtrl ⇢ sendEmail.catch registra error", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    ev.matchedData.mockReturnValueOnce({ email: "u@x.com", recoveryCode: "OK123", newPassword: "NewPass1" });
-    // Mockeamos findOne().select() para devolver user válido
-    const user = { save: jest.fn().mockResolvedValue() };
-    usersModel.findOne = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue({ ...user, passwordRecoveryCodeHash: "hash" })
-    });
-    pwdUtils.compare.mockResolvedValueOnce(true);
-    pwdUtils.encrypt.mockResolvedValueOnce("newHash");
-    sendEmail.mockRejectedValueOnce(new Error("smtp fail"));
-
-    const res = makeRes();
-    await changePasswordCtrl({}, res);
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Error en changePasswordCtrl:",
-      expect.any(Error)
-    );
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "ERROR_CHANGE_PASSWORD" });
-    consoleSpy.mockRestore();
-  });
-});
-
-   /* ------------------------------------------------------------------ */
-   /* recoverPasswordCodeCtrl – sendEmail falla                          */
-   /* ------------------------------------------------------------------ */
-   test("recoverPasswordCodeCtrl ⇢ sendEmail.catch registra error", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  test("recoverPasswordCodeCtrl ⇢ sendEmail.catch registra error", async () => {
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     ev.matchedData.mockReturnValueOnce({
       email: "u@x.com",
       currentPassword: "123",
       from: "no-reply@x",
     });
-    const user = { email: "u@x.com", password: "hash", save: jest.fn().mockResolvedValue() };
+    const user = {
+      email: "u@x.com",
+      password: "hash",
+      save: jest.fn().mockResolvedValue(),
+    };
     usersModel.findOne = jest.fn().mockResolvedValue(user);
     pwdUtils.compare.mockResolvedValueOnce(true);
     // Nos aseguramos de que encrypt() no falle y pase directamente a sendEmail
@@ -786,35 +742,29 @@ describe("controllers/users.js – sendEmail.catch internos", () => {
     consoleSpy.mockRestore();
   });
 
-/* ===================================================================== */
-/* Cobertura de la rama “fallback => cadena vacía” en onboardingCompany  */
-/* ===================================================================== */
-describe('onboardingCompanyCtrl – fallback a "" cuando no hay datos previos', () => {
-  const makeRes = () => ({
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
-    send: jest.fn().mockReturnThis(),
-  });
-
-  test("onboardingCompanyCtrl ⇢ sin body y sin user.company ⇒ valores undefined", async () => {
-    ev.matchedData.mockReturnValueOnce({});
-    const usr = { save: jest.fn() };
-    const res = makeRes();
-
-    await onboardingCompanyCtrl({ user: usr }, res);
-
-    expect(usr.company).toEqual({
-      companyName: undefined,
-      cif:         undefined,
-      address:     undefined,
+  describe('onboardingCompanyCtrl – fallback a "" cuando no hay datos previos', () => {
+    const makeRes = () => ({
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
     });
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Datos de la compañía actualizados",
-      company: usr.company,
+
+    test("onboardingCompanyCtrl ⇢ sin body y sin user.company ⇒ valores undefined", async () => {
+      ev.matchedData.mockReturnValueOnce({});
+      const usr = { save: jest.fn() };
+      const res = makeRes();
+
+      await onboardingCompanyCtrl({ user: usr }, res);
+
+      expect(usr.company).toEqual({
+        companyName: undefined,
+        cif: undefined,
+        address: undefined,
+      });
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Datos de la compañía actualizados",
+        company: usr.company,
+      });
     });
   });
-});
-
-//accept
-
 });

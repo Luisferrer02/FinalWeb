@@ -15,7 +15,6 @@ let itemId;
 beforeAll(async () => {
   await dbConnect();
 
-  // Espera activa a que la conexión esté establecida
   const waitForConnection = () => new Promise((resolve) => {
     const check = () => {
       if (mongoose.connection.readyState === 1) resolve();

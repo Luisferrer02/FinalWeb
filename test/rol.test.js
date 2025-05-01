@@ -1,4 +1,3 @@
-// tests/rol.test.js
 const checkRol = require('../middleware/rol');
 
 describe('middleware/rol', () => {

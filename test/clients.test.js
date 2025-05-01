@@ -8,8 +8,8 @@ const { tokenSign } = require("../utils/handleJwt");
 const fs = require("fs");
 const path = require("path");
 const { uploadToPinata } = require("../utils/handleUploadIPFS");
-const httpMocks = require('node-mocks-http')
-const { updateLogoClient } = require('../controllers/clients')
+const httpMocks = require("node-mocks-http");
+const { updateLogoClient } = require("../controllers/clients");
 
 // Mock the uploadToPinata function globally
 jest.mock("../utils/handleUploadIPFS", () => ({
@@ -99,7 +99,6 @@ afterAll(async () => {
 });
 
 describe("Clients API", () => {
-  // ==================== GET Endpoints Tests ====================
   describe("GET Endpoints", () => {
     test("GET /api/clients - Returns all clients successfully", async () => {
       const res = await request(app)
@@ -123,7 +122,6 @@ describe("Clients API", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "Error al obtener clientes");
 
-      // Restore the original implementation
       jest.restoreAllMocks();
     });
 
@@ -150,7 +148,6 @@ describe("Clients API", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "Error interno en el servidor");
 
-      // Restore the original implementation
       jest.restoreAllMocks();
     });
 
@@ -175,7 +172,6 @@ describe("Clients API", () => {
     });
 
     test("GET /api/clients/:id - Returns 404 when client belongs to different user", async () => {
-      // Create another user and client
       const otherUser = new User({
         name: "Other User",
         email: "otheruser@example.com",
@@ -198,7 +194,6 @@ describe("Clients API", () => {
       });
       const savedOtherClient = await otherClient.save();
 
-      // Try to access with first user's token
       const res = await request(app)
         .get(`/api/clients/${savedOtherClient._id}`)
         .set("Authorization", `Bearer ${token}`);
@@ -219,12 +214,10 @@ describe("Clients API", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "Error interno en el servidor");
 
-      // Restore the original implementation
       jest.restoreAllMocks();
     });
   });
 
-  // ==================== POST Endpoints Tests ====================
   describe("POST Endpoints", () => {
     test("POST /api/clients - Creates a client successfully", async () => {
       const newClient = {
@@ -275,12 +268,10 @@ describe("Clients API", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "Error al crear cliente");
 
-      // Restore the original implementation
       jest.restoreAllMocks();
     });
   });
 
-  // ==================== PUT Endpoints Tests ====================
   describe("PUT Endpoints", () => {
     test("PUT /api/clients/:id - Updates a client successfully", async () => {
       const updateData = {
@@ -308,10 +299,7 @@ describe("Clients API", () => {
 
     test("PUT /api/clients/:id - Returns 404 for non-existent client", async () => {
       const fakeClientId = new mongoose.Types.ObjectId();
-      const updateData = {
-        name: "Updated Client",
-        cif: "U1234567",
-      };
+      const updateData = { name: "Updated Client", cif: "U1234567" };
 
       const res = await request(app)
         .put(`/api/clients/${fakeClientId}`)
@@ -327,10 +315,7 @@ describe("Clients API", () => {
         .spyOn(Client, "findOneAndUpdate")
         .mockRejectedValueOnce(new Error("Database error"));
 
-      const updateData = {
-        name: "Error Client",
-        cif: "E1234567",
-      };
+      const updateData = { name: "Error Client", cif: "E1234567" };
 
       const res = await request(app)
         .put(`/api/clients/${clientId}`)
@@ -340,15 +325,12 @@ describe("Clients API", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "Error interno en el servidor");
 
-      // Restore the original implementation
       jest.restoreAllMocks();
     });
   });
 
-  // ==================== DELETE Endpoints Tests ====================
   describe("DELETE Endpoints", () => {
     test("DELETE /api/clients/:id - Deletes a client successfully", async () => {
-      // Create a test client to delete
       const clientToDelete = new Client({
         userId: testUser._id,
         name: "Client to Delete",
@@ -373,7 +355,6 @@ describe("Clients API", () => {
         "Cliente eliminado correctamente"
       );
 
-      // Verify client was deleted
       const deletedClient = await Client.findById(savedClient._id);
       expect(deletedClient).toBeNull();
     });
@@ -401,15 +382,12 @@ describe("Clients API", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "Error interno en el servidor");
 
-      // Restore the original implementation
       jest.restoreAllMocks();
     });
   });
 
-  // ==================== Archive/Restore Endpoints Tests ====================
   describe("Archive/Restore Endpoints", () => {
     test("DELETE /api/clients/archive/:id - Archives a client successfully", async () => {
-      // Create a test client to archive
       const clientToArchive = new Client({
         userId: testUser._id,
         name: "Client to Archive",
@@ -434,7 +412,6 @@ describe("Clients API", () => {
         "Cliente archivado correctamente"
       );
 
-      // Verify client was archived
       const archivedClient = await Client.findById(savedClient._id);
       expect(archivedClient.archived).toBe(true);
     });
@@ -462,12 +439,10 @@ describe("Clients API", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "Error interno en el servidor");
 
-      // Restore the original implementation
       jest.restoreAllMocks();
     });
 
     test("PATCH /api/clients/restore/:id - Restores a client successfully", async () => {
-      // Create a test archived client to restore
       const clientToRestore = new Client({
         userId: testUser._id,
         name: "Client to Restore",
@@ -493,7 +468,6 @@ describe("Clients API", () => {
         "Cliente restaurado correctamente"
       );
 
-      // Verify client was restored
       const restoredClient = await Client.findById(savedClient._id);
       expect(restoredClient.archived).toBe(false);
     });
@@ -510,16 +484,12 @@ describe("Clients API", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty("error", "Error interno en el servidor");
 
-      // Restore the original implementation
       jest.restoreAllMocks();
     });
   });
 
-  // ==================== Logo Upload Tests ====================
-  // Logo Upload Endpoints
   describe("Logo Upload Endpoints", () => {
     beforeEach(() => {
-      // Reset mock behavior before each test
       uploadToPinata.mockClear();
       uploadToPinata.mockResolvedValue({ IpfsHash: "test123hash456" });
     });
@@ -535,7 +505,6 @@ describe("Clients API", () => {
         "message",
         "Logo actualizado correctamente"
       );
-      expect(res.body).toHaveProperty("client");
       expect(res.body.client).toHaveProperty("logo");
       expect(res.body.client.logo).toContain("test123hash456");
       expect(uploadToPinata).toHaveBeenCalled();
@@ -544,7 +513,7 @@ describe("Clients API", () => {
     test("PATCH /api/clients/logo/:id - Returns 400 when no file is uploaded", async () => {
       const res = await request(app)
         .patch(`/api/clients/logo/${clientId}`)
-        .set("Authorization", `Bearer ${token}`); // no .attach()
+        .set("Authorization", `Bearer ${token}`);
 
       expect(res.statusCode).toBe(400);
       expect(res.body).toHaveProperty(
@@ -566,7 +535,6 @@ describe("Clients API", () => {
     });
 
     test("PATCH /api/clients/logo/:id - Handles IPFS upload errors", async () => {
-      // Force uploadToPinata to reject
       uploadToPinata.mockRejectedValueOnce(new Error("IPFS upload failed"));
 
       const res = await request(app)
@@ -579,9 +547,7 @@ describe("Clients API", () => {
     });
 
     test("PATCH /api/clients/logo/:id - Handles database errors", async () => {
-      // Ensure IPFS upload succeeds
       uploadToPinata.mockResolvedValueOnce({ IpfsHash: "test123hash456" });
-      // Then force the Mongo update to fail
       const spy = jest
         .spyOn(Client, "findOneAndUpdate")
         .mockRejectedValueOnce(new Error("Database error"));
@@ -599,10 +565,6 @@ describe("Clients API", () => {
   });
 
   describe("Clients controllers error branches", () => {
-    beforeEach(() => {
-      // Asegúrate de que el user ya esté logueado y haya un req.user._id válido.
-    });
-
     test("GET /api/clients → catch de getClients", async () => {
       jest.spyOn(Client, "find").mockRejectedValueOnce(new Error("DB Fail"));
       const res = await request(app)
@@ -709,14 +671,10 @@ describe("Clients API", () => {
     });
   });
 
-  /* ===================================================================== */
-  /*  Cobertura extra – clientes que pertenecen a OTRO usuario (404 paths) */
-  /* ===================================================================== */
-  describe("Clients – autorización / 404 por pertenencia a otro usuario", () => {
+  describe("Clients – authorization / 404 for other-user clients", () => {
     let outsider, outsiderToken, outsiderClientId;
 
     beforeAll(async () => {
-      // ➊ Usuario y cliente que NO pertenecen al usuario autenticado
       outsider = await User.create({
         name: "Outsider",
         email: "out@example.com",
@@ -727,10 +685,10 @@ describe("Clients API", () => {
 
       const outsiderClient = await Client.create({
         userId: outsider._id,
-        name: "Outsider Client",
+        name: "Outsider Client",
         cif: "OUT1234",
         address: {
-          street: "Out St",
+          street: "Out St",
           number: 1,
           postal: 11111,
           city: "OutCity",
@@ -740,19 +698,17 @@ describe("Clients API", () => {
       outsiderClientId = outsiderClient._id;
     });
 
-    /* PUT ⇒ updateClient */
-    test("PUT /api/clients/:id ⇒ 404 si el cliente es de otro user", async () => {
+    test("PUT /api/clients/:id ⇒ 404 if client belongs to another user", async () => {
       const res = await request(app)
         .put(`/api/clients/${outsiderClientId}`)
-        .set("Authorization", `Bearer ${token}`) // token del primer usuario
+        .set("Authorization", `Bearer ${token}`)
         .send({ name: "Hack" });
 
       expect(res.statusCode).toBe(404);
       expect(res.body).toEqual({ error: "Cliente no encontrado" });
     });
 
-    /* DELETE ⇒ deleteClient */
-    test("DELETE /api/clients/:id ⇒ 404 si el cliente es de otro user", async () => {
+    test("DELETE /api/clients/:id ⇒ 404 if client belongs to another user", async () => {
       const res = await request(app)
         .delete(`/api/clients/${outsiderClientId}`)
         .set("Authorization", `Bearer ${token}`);
@@ -761,8 +717,7 @@ describe("Clients API", () => {
       expect(res.body).toEqual({ error: "Cliente no encontrado" });
     });
 
-    /* DELETE (archive) ⇒ archiveClient */
-    test("DELETE /api/clients/archive/:id ⇒ 404 si el cliente es de otro user", async () => {
+    test("DELETE /api/clients/archive/:id ⇒ 404 if client belongs to another user", async () => {
       const res = await request(app)
         .delete(`/api/clients/archive/${outsiderClientId}`)
         .set("Authorization", `Bearer ${token}`);
@@ -771,8 +726,7 @@ describe("Clients API", () => {
       expect(res.body).toEqual({ error: "Cliente no encontrado" });
     });
 
-    /* PATCH (restore) ⇒ restoreClient */
-    test("PATCH /api/clients/restore/:id ⇒ 404 si el cliente es de otro user", async () => {
+    test("PATCH /api/clients/restore/:id ⇒ 404 if client belongs to another user", async () => {
       const res = await request(app)
         .patch(`/api/clients/restore/${outsiderClientId}`)
         .set("Authorization", `Bearer ${token}`);
@@ -783,72 +737,72 @@ describe("Clients API", () => {
   });
 });
 
-describe('clients controller – updateLogoClient error branches', () => {
-  let req, res
+describe("updateLogoClient error branches", () => {
+  let req, res;
 
   beforeEach(() => {
-    res = httpMocks.createResponse()
-  })
+    res = httpMocks.createResponse();
+  });
 
   afterEach(() => {
-    jest.restoreAllMocks()
-  })
+    jest.restoreAllMocks();
+  });
 
-  test('returns 400 if no file uploaded', async () => {
-    // req.user is present, but req.file is missing
+  test("returns 400 if no file uploaded", async () => {
     req = httpMocks.createRequest({
-      params: { id: '507f1f77bcf86cd799439011' },
-      user:   { _id: 'u1' },
-    })
+      params: { id: "507f1f77bcf86cd799439011" },
+      user: { _id: "u1" },
+    });
 
-    await updateLogoClient(req, res)
+    await updateLogoClient(req, res);
 
-    expect(res.statusCode).toBe(400)
-    expect(res._getJSONData()).toEqual({ error: 'No se ha subido ningún archivo' })
-  })
+    expect(res.statusCode).toBe(400);
+    expect(res._getJSONData()).toEqual({
+      error: "No se ha subido ningún archivo",
+    });
+  });
 
-  test('returns 401 if no user on req', async () => {
-    // req.file is present, but req.user is missing
+  test("returns 401 if no user on req", async () => {
     req = httpMocks.createRequest({
-      params: { id: '507f1f77bcf86cd799439011' },
-      file:   { buffer: Buffer.from(''), originalname: 'logo.png' },
-    })
+      params: { id: "507f1f77bcf86cd799439011" },
+      file: { buffer: Buffer.from(""), originalname: "logo.png" },
+    });
 
-    await updateLogoClient(req, res)
+    await updateLogoClient(req, res);
 
-    expect(res.statusCode).toBe(401)
-    expect(res._getJSONData()).toEqual({ error: 'No autorizado' })
-  })
+    expect(res.statusCode).toBe(401);
+    expect(res._getJSONData()).toEqual({ error: "No autorizado" });
+  });
 
-  test('returns 404 if client not found by findOneAndUpdate', async () => {
-    // happy path until findOneAndUpdate returns null
+  test("returns 404 if client not found by findOneAndUpdate", async () => {
     req = httpMocks.createRequest({
-      params: { id: '507f1f77bcf86cd799439011' },
-      user:   { _id: 'u1' },
-      file:   { buffer: Buffer.from(''), originalname: 'logo.png' },
-    })
-    jest.spyOn(Client, 'findOneAndUpdate').mockResolvedValue(null)
+      params: { id: "507f1f77bcf86cd799439011" },
+      user: { _id: "u1" },
+      file: { buffer: Buffer.from(""), originalname: "logo.png" },
+    });
+    jest.spyOn(Client, "findOneAndUpdate").mockResolvedValue(null);
 
-    await updateLogoClient(req, res)
+    await updateLogoClient(req, res);
 
-    expect(res.statusCode).toBe(404)
-    expect(res._getJSONData()).toEqual({ error: 'Cliente no encontrado' })
-  })
+    expect(res.statusCode).toBe(404);
+    expect(res._getJSONData()).toEqual({ error: "Cliente no encontrado" });
+  });
 
-  test('returns 404 on CastError (invalid id)', async () => {
-    // simulate a Mongoose CastError in the catch block
+  test("returns 404 on CastError (invalid id)", async () => {
     req = httpMocks.createRequest({
-      params: { id: 'not-an-objectid' },
-      user:   { _id: 'u1' },
-      file:   { buffer: Buffer.from(''), originalname: 'logo.png' },
-    })
-    const castErr = new Error('Cast to ObjectId failed')
-    castErr.name = 'CastError'
-    jest.spyOn(Client, 'findOneAndUpdate').mockImplementation(() => { throw castErr })
+      params: { id: "not-an-objectid" },
+      user: { _id: "u1" },
+      file: { buffer: Buffer.from(""), originalname: "logo.png" },
+    });
+    const castErr = new Error("Cast to ObjectId failed");
+    castErr.name = "CastError";
+    jest.spyOn(Client, "findOneAndUpdate").mockImplementation(() => {
+      throw castErr;
+    });
 
-    await updateLogoClient(req, res)
+    await updateLogoClient(req, res);
 
-    expect(res.statusCode).toBe(404)
-    expect(res._getJSONData()).toEqual({ error: 'Cliente no encontrado' })
-  })
-})
+    expect(res.statusCode).toBe(404);
+    expect(res._getJSONData()).toEqual({ error: "Cliente no encontrado" });
+  });
+});

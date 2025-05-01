@@ -35,7 +35,7 @@ jest.mock("express-validator", () => ({
       jest.clearAllMocks();
     });
   
-    test("acceptInviteCtrl → éxito", async () => {
+    test("POST api/users/accept-invite → éxito", async () => {
       ev.matchedData.mockReturnValueOnce({
         token: "tok123",
         name: "Juan",
@@ -73,7 +73,7 @@ jest.mock("express-validator", () => ({
       });
     });
   
-    test("acceptInviteCtrl → USER_NOT_FOUND", async () => {
+    test("POST api/users/accept-invite → USER_NOT_FOUND", async () => {
       ev.matchedData.mockReturnValueOnce({
         token: "tok123",
         name: "Juan",
@@ -93,7 +93,7 @@ jest.mock("express-validator", () => ({
       expect(res.json).toHaveBeenCalledWith({ error: "USER_NOT_FOUND" });
     });
   
-    test("acceptInviteCtrl → INVITE_EXPIRED", async () => {
+    test("POST api/users/accept-invite → INVITE_EXPIRED", async () => {
       ev.matchedData.mockReturnValueOnce({
         token: "tok123",
         name: "Juan",
@@ -117,7 +117,7 @@ jest.mock("express-validator", () => ({
       expect(res.json).toHaveBeenCalledWith({ error: "INVITE_EXPIRED" });
     });
   
-    test("acceptInviteCtrl → INVALID_INVITE_TOKEN", async () => {
+    test("POST api/users/accept-invite → INVALID_INVITE_TOKEN", async () => {
       ev.matchedData.mockReturnValueOnce({
         token: "badtok",
         name: "Juan",
@@ -143,7 +143,7 @@ jest.mock("express-validator", () => ({
       expect(res.json).toHaveBeenCalledWith({ error: "INVALID_INVITE_TOKEN" });
     });
   
-    test("acceptInviteCtrl → ERROR_ACCEPT_INVITE (catch)", async () => {
+    test("POST api/users/accept-invite → ERROR_ACCEPT_INVITE (catch)", async () => {
       ev.matchedData.mockImplementationOnce(() => {
         throw new Error("boom");
       });

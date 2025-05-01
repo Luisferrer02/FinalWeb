@@ -74,7 +74,6 @@ afterAll(async () => {
   }
 });
 
-// Helper function to create a test delivery note
 async function createTestDeliveryNote() {
   const deliveryData = {
     clientId: testClient._id.toString(),
@@ -96,6 +95,7 @@ const PDFDocument = require('pdfkit');
 
 
 describe("DeliveryNote API", () => {
+  // ==================== Basic CRUD Operations ====================
   describe("Basic CRUD Operations", () => {
     test("POST /api/deliverynote - Creates a delivery note", async () => {
       const deliveryData = {
@@ -144,6 +144,7 @@ describe("DeliveryNote API", () => {
     });
   });
 
+  // ==================== PDF Generation and Signing ====================
   describe("PDF Generation and Signing", () => {
     test("GET /api/deliverynote/pdf/:id - Generates and downloads PDF", async () => {
       const res = await request(app)
@@ -196,6 +197,7 @@ describe("DeliveryNote API", () => {
     });
   });
 
+  // ==================== Error Handling ====================
   describe("Error Handling", () => {
     test("GET /api/deliverynote/pdf/:id - Handles errors during PDF generation", async () => {
       const noteId = await createTestDeliveryNote();
@@ -264,12 +266,9 @@ describe("DeliveryNote API", () => {
     test("POST /api/deliverynote/sign/:id - Handles errors signing delivery note", async () => {
       const noteId = await createTestDeliveryNote();
 
-      // 👇 Mock correcto del primer paso: uploadToPinata
       jest.spyOn(uploadModule, "uploadToPinata").mockResolvedValue({
         IpfsHash: "fake-signature-hash",
       });
-
-      // 👇 Luego mockeamos que la actualización falle
       const updateSpy = jest
         .spyOn(DeliveryNote, "findOneAndUpdate")
         .mockImplementationOnce(() => {
@@ -295,7 +294,7 @@ describe("DeliveryNote API", () => {
         .get(`/api/deliverynote/pdf/${nonExistentId}`)
         .set("Authorization", `Bearer ${token}`);
 
-      expect(res.statusCode).toEqual(404);
+      expect(res.statusCode).toBe(404);
       expect(res.body).toHaveProperty("error", "DELIVERYNOTE_NOT_FOUND");
     });
 
@@ -373,7 +372,6 @@ describe("DeliveryNote API", () => {
     test("PUT /api/deliverynote/:id - Cannot update signed delivery note", async () => {
       const noteId = await createTestDeliveryNote();
 
-      // Mockear firma
       const imagePath = path.join(__dirname, "firma.png");
       jest
         .spyOn(uploadModule, "uploadToPinata")
@@ -393,7 +391,7 @@ describe("DeliveryNote API", () => {
           ],
         });
 
-      expect(res.statusCode).toBe(400); // <-- este era el fallo
+      expect(res.statusCode).toBe(400);
       expect(res.body).toEqual({ error: "DELIVERYNOTE_ALREADY_SIGNED" });
     });
 
@@ -412,12 +410,12 @@ describe("DeliveryNote API", () => {
     });
   });
 
+  // ==================== DeliveryNote sign error branch ====================
   describe("DeliveryNote sign error branch", () => {
     test("POST /api/deliverynote/sign/:id - Returns 404 for non-existent note", async () => {
       const nonExistentId = new mongoose.Types.ObjectId();
       const imagePath = path.join(__dirname, "firma.png");
 
-      // <-- Añade este mock para que uploadToPinata resuelva correctamente:
       jest.spyOn(uploadModule, "uploadToPinata").mockResolvedValueOnce({
         IpfsHash: "hash404",
       });
@@ -427,15 +425,15 @@ describe("DeliveryNote API", () => {
         .set("Authorization", `Bearer ${token}`)
         .attach("image", imagePath);
 
-      expect(res.statusCode).toEqual(404);
+      expect(res.statusCode).toBe(404);
       expect(res.body).toHaveProperty("error", "DELIVERYNOTE_NOT_FOUND");
     });
   });
 
-  /* ===================================================================== */
-  /*  Cobertura extra – nota inexistente en GET /deliverynote/:id (404)    */
-  /* ===================================================================== */
-  describe("DeliveryNote – GET /api/deliverynote/:id 404", () => {
+  // =====================================================================
+  // Cobertura extra – nota inexistente en GET /deliverynote/:id (404)
+  // =====================================================================
+  describe("DeliveryNote – GET /api/deliverynote/:id 404", () => {
     test("retorna 404 cuando la nota no existe", async () => {
       const fakeId = new mongoose.Types.ObjectId();
 
@@ -449,222 +447,180 @@ describe("DeliveryNote API", () => {
   });
 });
 
-describe('deliveryNote controller – ramas de error', () => {
+describe("deliveryNote controller – ramas de error", () => {
   let generateDeliveryNotePdf, updateDeliveryNote, httpMocks, DeliveryNoteModel, PDFDocument;
 
   beforeAll(() => {
     jest.resetModules();
-    // Only for these unit‐level tests, stub out pdfkit:
-    jest.doMock('pdfkit', () =>
+    jest.doMock("pdfkit", () =>
       jest.fn().mockImplementation(() => ({
-        on:   (evt, cb) => { if (evt === 'error') cb(new Error('PDF fail')); },
+        on:   (evt, cb) => { if (evt === "error") cb(new Error("PDF fail")); },
         pipe: () => {},
         end:  () => {}
       }))
     );
-
-    httpMocks         = require('node-mocks-http');
-    DeliveryNoteModel = require('../models/nosql/deliveryNote');
+    httpMocks         = require("node-mocks-http");
+    DeliveryNoteModel = require("../models/nosql/deliveryNote");
     ({ generateDeliveryNotePdf, updateDeliveryNote } =
-      require('../controllers/deliveryNote'));
-    PDFDocument       = require('pdfkit');
+      require("../controllers/deliveryNote"));
+    PDFDocument       = require("pdfkit");
   });
 
   afterAll(() => {
-    jest.dontMock('pdfkit');
+    jest.dontMock("pdfkit");
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  test('generateDeliveryNotePdf → PDF stream error dispara ERROR_GENERATE_PDF', async () => {
-    jest.spyOn(DeliveryNoteModel, 'findById').mockResolvedValue({
-      _id: '1',
+  test("generateDeliveryNotePdf → PDF stream error dispara ERROR_GENERATE_PDF", async () => {
+    jest.spyOn(DeliveryNoteModel, "findById").mockResolvedValue({
+      _id: "1",
       createdAt: new Date(),
-      userId: { name: 'X', email: 'x@x' },
-      clientId: { name: 'C', cif: 'CIF', address: {}, logo: '' },
-      projectId: { name: 'P', description: '' },
+      userId: { name: "X", email: "x@x" },
+      clientId: { name: "C", cif: "CIF", address: {}, logo: "" },
+      projectId: { name: "P", description: "" },
       items: [],
       isSigned: false,
     });
 
-    const req = httpMocks.createRequest({ params: { id: '1' } });
+    const req = httpMocks.createRequest({ params: { id: "1" } });
     const res = httpMocks.createResponse();
     await generateDeliveryNotePdf(req, res);
 
     expect(res.statusCode).toBe(500);
-    expect(res._getData()).toEqual(JSON.stringify({ error: 'ERROR_GENERATE_PDF' }));
+    expect(res._getData()).toEqual(JSON.stringify({ error: "ERROR_GENERATE_PDF" }));
   });
 
-  test('updateDeliveryNote → excepción en findOneAndUpdate devuelve ERROR_UPDATE_DELIVERYNOTE', async () => {
-    jest.spyOn(DeliveryNoteModel, 'findById').mockResolvedValue({ isSigned: false });
-    jest.spyOn(DeliveryNoteModel, 'findOneAndUpdate').mockRejectedValue(new Error('DB fail'));
+  test("updateDeliveryNote → excepción en findOneAndUpdate devuelve ERROR_UPDATE_DELIVERYNOTE", async () => {
+    jest.spyOn(DeliveryNoteModel, "findById").mockResolvedValue({ isSigned: false });
+    jest.spyOn(DeliveryNoteModel, "findOneAndUpdate").mockRejectedValue(new Error("DB fail"));
 
-    const req = httpMocks.createRequest({ params: { id: 'any' }, user: { _id: 'u1' }, body: {} });
+    const req = httpMocks.createRequest({ params: { id: "any" }, user: { _id: "u1" }, body: {} });
     const res = httpMocks.createResponse();
     await updateDeliveryNote(req, res);
 
     expect(res.statusCode).toBe(500);
-    expect(res._getData()).toEqual(JSON.stringify({ error: 'ERROR_UPDATE_DELIVERYNOTE' }));
+    expect(res._getData()).toEqual(JSON.stringify({ error: "ERROR_UPDATE_DELIVERYNOTE" }));
   });
 
-  // Add these tests to your 'deliveryNote controller – ramas de error' describe block
+  test("generateDeliveryNotePdf → res.on(\"error\") maneja errores en la respuesta HTTP", async () => {
+    jest.spyOn(DeliveryNoteModel, "findById").mockResolvedValue({
+      _id: "1",
+      createdAt: new Date(),
+      userId: { name: "X", email: "x@x" },
+      clientId: { name: "C", cif: "CIF", address: {}, logo: "" },
+      projectId: { name: "P", description: "" },
+      items: [],
+      isSigned: false,
+    });
 
-// Replacement code for the failing tests in deliveryNote.test.js
+    const mockDestroy = jest.fn();
+    const mockPipe    = jest.fn().mockReturnThis();
+    const mockOn      = jest.fn().mockImplementation((event, cb) => ({}));
+    const mockEnd     = jest.fn();
 
-test('generateDeliveryNotePdf → res.on("error") maneja errores en la respuesta HTTP', async () => {
-  // 1. Mock the delivery note find
-  jest.spyOn(DeliveryNoteModel, 'findById').mockResolvedValue({
-    _id: '1',
-    createdAt: new Date(),
-    userId: { name: 'X', email: 'x@x' },
-    clientId: { name: 'C', cif: 'CIF', address: {}, logo: '' },
-    projectId: { name: 'P', description: '' },
-    items: [],
-    isSigned: false,
-  });
-  
-  // 2. Create a mock PDFDocument with proper structure
-  const mockDestroy = jest.fn();
-  const mockPipe = jest.fn().mockReturnThis();
-  const mockOn = jest.fn().mockImplementation((event, callback) => {
-    return {}; // Return a mock implementation
-  });
-  const mockEnd = jest.fn();
-  
-  // Create proper mock implementation
-  PDFDocument.mockImplementation(() => ({
-    destroy: mockDestroy,
-    pipe: mockPipe,
-    on: mockOn,
-    end: mockEnd
-  }));
-  
-  // 3. Create request/response with mocked response.on method
-  const req = httpMocks.createRequest({ params: { id: '1' } });
-  const res = httpMocks.createResponse({
-    eventEmitter: require('events').EventEmitter
-  });
-  
-  // 4. Add a spy for the response's 'on' method
-  const onSpy = jest.spyOn(res, 'on');
-  
-  // 5. Call the controller method
-  await generateDeliveryNotePdf(req, res);
-  
-  // 6. Manually trigger the 'error' event handler
-  // Find the callback registered for the 'error' event
-  const errorHandlers = onSpy.mock.calls.filter(call => call[0] === 'error');
-  expect(errorHandlers.length).toBeGreaterThan(0);
-  
-  // Get the error handler callback and call it with an error
-  const errorHandler = errorHandlers[0][1];
-  errorHandler(new Error('Response stream error'));
-  
-  // 7. Verify that doc.destroy was called
-  expect(mockDestroy).toHaveBeenCalled();
-});
+    PDFDocument.mockImplementation(() => ({
+      destroy: mockDestroy,
+      pipe:    mockPipe,
+      on:      mockOn,
+      end:     mockEnd
+    }));
 
-test('generateDeliveryNotePdf → doc.on("error") con headersSent=true llama a res.destroy', async () => {
-  // 1. Mock the delivery note find
-  jest.spyOn(DeliveryNoteModel, 'findById').mockResolvedValue({
-    _id: '1',
-    createdAt: new Date(),
-    userId: { name: 'X', email: 'x@x' },
-    clientId: { name: 'C', cif: 'CIF', address: {}, logo: '' },
-    projectId: { name: 'P', description: '' },
-    items: [],
-    isSigned: false,
-  });
-  
-  // 2. Create a custom request and response
-  const req = httpMocks.createRequest({ params: { id: '1' } });
-  const res = httpMocks.createResponse();
-  const mockResDestroy = jest.fn();
-  res.destroy = mockResDestroy;
-  
-  // 3. Simulate headers already sent
-  Object.defineProperty(res, 'headersSent', { value: true });
-  
-  // 4. Mock PDFDocument with a callback store
-  let errorCallback;
-  const mockDocDestroy = jest.fn();
-  
-  PDFDocument.mockImplementation(() => ({
-    on: jest.fn().mockImplementation((event, callback) => {
-      if (event === 'error') {
-        errorCallback = callback;
-      }
-      return {};
-    }),
-    pipe: jest.fn().mockReturnThis(),
-    end: jest.fn(),
-    destroy: mockDocDestroy
-  }));
-  
-  // 5. Call the controller method
-  await generateDeliveryNotePdf(req, res);
-  
-  // 6. Manually trigger the PDF error
-  expect(errorCallback).toBeDefined();
-  errorCallback(new Error('PDF stream error with headers sent'));
-  
-  // 7. Expect res.destroy to have been called
-  expect(mockResDestroy).toHaveBeenCalled();
-});
+    const req = httpMocks.createRequest({ params: { id: "1" } });
+    const res = httpMocks.createResponse({
+      eventEmitter: require("events").EventEmitter
+    });
 
-test('generateDeliveryNotePdf → doc.on("error") con headersSent=false devuelve error HTTP', async () => {
-  // 1. Mock the delivery note find
-  jest.spyOn(DeliveryNoteModel, 'findById').mockResolvedValue({
-    _id: '1',
-    createdAt: new Date(),
-    userId: { name: 'X', email: 'x@x' },
-    clientId: { name: 'C', cif: 'CIF', address: {}, logo: '' },
-    projectId: { name: 'P', description: '' },
-    items: [],
-    isSigned: false,
+    const onSpy = jest.spyOn(res, "on");
+    await generateDeliveryNotePdf(req, res);
+
+    const errorHandlers = onSpy.mock.calls.filter(call => call[0] === "error");
+    expect(errorHandlers.length).toBeGreaterThan(0);
+
+    const errorHandler = errorHandlers[0][1];
+    errorHandler(new Error("Response stream error"));
+
+    expect(mockDestroy).toHaveBeenCalled();
   });
-  
-  // 2. Mock handleHttpError for this test
-  const handleHttpError = require('../utils/handleError').handleHttpError;
-  jest.mock('../utils/handleError', () => ({
-    handleHttpError: jest.fn().mockImplementation((res, errorMsg, code) => {
-      res.status(code).json({ error: errorMsg });
-      return true; // Indicate error was handled
-    })
-  }));
-  
-  // 3. Create a custom request and response
-  const req = httpMocks.createRequest({ params: { id: '1' } });
-  const res = httpMocks.createResponse();
-  
-  // 4. Force headersSent to be false
-  Object.defineProperty(res, 'headersSent', { value: false });
-  
-  // 5. Mock PDFDocument with a callback store
-  let errorCallback;
-  
-  PDFDocument.mockImplementation(() => ({
-    on: jest.fn().mockImplementation((event, callback) => {
-      if (event === 'error') {
-        errorCallback = callback;
-      }
-      return {};
-    }),
-    pipe: jest.fn().mockReturnThis(),
-    end: jest.fn(),
-    destroy: jest.fn()
-  }));
-  
-  // 6. Call the controller method
-  await generateDeliveryNotePdf(req, res);
-  
-  // 7. Manually trigger the PDF error
-  expect(errorCallback).toBeDefined();
-  errorCallback(new Error('PDF stream error without headers sent'));
-  
-  // 8. Check that handleHttpError was called with expected parameters
-  expect(handleHttpError).toHaveBeenCalledWith(res, "ERROR_GENERATE_PDF", 500);
-});
+
+  test("generateDeliveryNotePdf → doc.on(\"error\") con headersSent=true llama a res.destroy", async () => {
+    jest.spyOn(DeliveryNoteModel, "findById").mockResolvedValue({
+      _id: "1",
+      createdAt: new Date(),
+      userId: { name: "X", email: "x@x" },
+      clientId: { name: "C", cif: "CIF", address: {}, logo: "" },
+      projectId: { name: "P", description: "" },
+      items: [],
+      isSigned: false,
+    });
+
+    const req = httpMocks.createRequest({ params: { id: "1" } });
+    const res = httpMocks.createResponse();
+    const mockResDestroy = jest.fn();
+    res.destroy = mockResDestroy;
+    Object.defineProperty(res, "headersSent", { value: true });
+
+    let errorCallback;
+    const mockDocDestroy = jest.fn();
+
+    PDFDocument.mockImplementation(() => ({
+      on: jest.fn().mockImplementation((event, callback) => {
+        if (event === "error") errorCallback = callback;
+        return {};
+      }),
+      pipe:    jest.fn().mockReturnThis(),
+      end:     jest.fn(),
+      destroy: mockDocDestroy
+    }));
+
+    await generateDeliveryNotePdf(req, res);
+    expect(errorCallback).toBeDefined();
+    errorCallback(new Error("PDF stream error with headers sent"));
+
+    expect(mockResDestroy).toHaveBeenCalled();
+  });
+
+  test("generateDeliveryNotePdf → doc.on(\"error\") con headersSent=false devuelve error HTTP", async () => {
+    jest.spyOn(DeliveryNoteModel, "findById").mockResolvedValue({
+      _id: "1",
+      createdAt: new Date(),
+      userId: { name: "X", email: "x@x" },
+      clientId: { name: "C", cif: "CIF", address: {}, logo: "" },
+      projectId: { name: "P", description: "" },
+      items: [],
+      isSigned: false,
+    });
+
+    // mock handleHttpError
+    jest.mock("../utils/handleError", () => ({
+      handleHttpError: jest.fn().mockImplementation((res, msg, code) => {
+        res.status(code).json({ error: msg });
+        return true;
+      })
+    }));
+    const { handleHttpError } = require("../utils/handleError");
+
+    const req = httpMocks.createRequest({ params: { id: "1" } });
+    const res = httpMocks.createResponse();
+    Object.defineProperty(res, "headersSent", { value: false });
+
+    let errorCallback;
+    PDFDocument.mockImplementation(() => ({
+      on: jest.fn().mockImplementation((event, callback) => {
+        if (event === "error") errorCallback = callback;
+        return {};
+      }),
+      pipe:    jest.fn().mockReturnThis(),
+      end:     jest.fn(),
+      destroy: jest.fn()
+    }));
+
+    await generateDeliveryNotePdf(req, res);
+    expect(errorCallback).toBeDefined();
+    errorCallback(new Error("PDF stream error without headers sent"));
+
+    expect(handleHttpError).toHaveBeenCalledWith(res, "ERROR_GENERATE_PDF", 500);
+  });
 });

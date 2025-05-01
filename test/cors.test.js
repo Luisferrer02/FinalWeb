@@ -25,7 +25,6 @@ describe("CORS middleware", () => {
     const res = await request(app)
       .get("/api/forbidden")
       .set("Origin", "http://evil.com");
-    // cuando CORS devuelve error, tu handler global lo transforma en 500
     expect(res.statusCode).toBe(500);
     expect(res.body).toEqual({ error: "CORS_NOT_ALLOWED" });
   });

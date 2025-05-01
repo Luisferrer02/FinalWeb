@@ -1,6 +1,6 @@
 // tests/auth.test.js
 jest.mock("../utils/handleMails", () => ({
-  sendEmail: jest.fn()
+  sendEmail: jest.fn(),
 }));
 
 const request = require("supertest");
@@ -9,7 +9,6 @@ const mongoose = require("mongoose");
 const User = require("../models/nosql/users");
 const { sendEmail } = require("../utils/handleMails");
 const { encrypt } = require("../utils/handlePassword");
-
 
 describe("Auth Endpoints", () => {
   beforeAll(async () => {
@@ -24,7 +23,7 @@ describe("Auth Endpoints", () => {
   const userData = {
     name: "Auth Test User",
     email: "authtest@example.com",
-    password: "password123"
+    password: "password123",
   };
 
   let userId;
@@ -33,9 +32,7 @@ describe("Auth Endpoints", () => {
   test("POST /api/auth/register - Registra un usuario", async () => {
     sendEmail.mockResolvedValueOnce(true); // camino feliz
 
-    const res = await request(app)
-      .post("/api/auth/register")
-      .send(userData);
+    const res = await request(app).post("/api/auth/register").send(userData);
 
     expect(res.statusCode).toEqual(200);
     userId = res.body.user._id;
@@ -47,7 +44,7 @@ describe("Auth Endpoints", () => {
     const userWithEmail = {
       name: "User Fail Email",
       email: "fail-email@example.com",
-      password: "password123"
+      password: "password123",
     };
 
     sendEmail.mockRejectedValueOnce(new Error("Fallo forzado en email"));
@@ -61,23 +58,20 @@ describe("Auth Endpoints", () => {
   });
 
   test("POST /api/auth/register - Email ya registrado (entra en catch) ", async () => {
-    const res = await request(app)
-      .post("/api/auth/register")
-      .send(userData); // mismo email que antes
+    const res = await request(app).post("/api/auth/register").send(userData); // mismo email que antes
 
     expect(res.statusCode).toBe(409);
     expect(res.body).toHaveProperty("error", "EMAIL_ALREADY_EXISTS");
   });
 
   test("POST /api/users/validate-email - Valida el correo del usuario", async () => {
-
-        // Creamos manualmente un código y su hash para test
-    const rawCode = '123456';
+    // Creamos manualmente un código y su hash para test
+    const rawCode = "123456";
     const hash = await encrypt(rawCode, 6);
     await User.findByIdAndUpdate(userId, {
       emailVerificationCodeHash: hash,
       emailVerificationCodeSentAt: new Date(),
-      emailVerificationAttempts: 0
+      emailVerificationAttempts: 0,
     });
 
     const res = await request(app)
@@ -86,19 +80,20 @@ describe("Auth Endpoints", () => {
       .send({ code: rawCode });
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("message", "Email verificado correctamente");
+    expect(res.body).toHaveProperty(
+      "message",
+      "Email verificado correctamente"
+    );
 
     // aseguramos que está verificado para cubrir rama negativa EMAIL_NOT_VERIFIED
     await User.findByIdAndUpdate(userId, { isEmailVerified: true });
   });
 
   test("POST /api/auth/login - Usuario no existe (entra en catch)", async () => {
-    const res = await request(app)
-      .post("/api/auth/login")
-      .send({
-        email: "noexiste@example.com",
-        password: "password123"
-      });
+    const res = await request(app).post("/api/auth/login").send({
+      email: "noexiste@example.com",
+      password: "password123",
+    });
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty("error", "USER_NOT_EXISTS");
@@ -109,7 +104,7 @@ describe("Auth Endpoints", () => {
       name: "Unverified",
       email: "unverified@example.com",
       password: await require("../utils/handlePassword").encrypt("pass1234"),
-      isEmailVerified: false
+      isEmailVerified: false,
     });
     await unverifiedUser.save();
 
@@ -122,23 +117,20 @@ describe("Auth Endpoints", () => {
   });
 
   test("POST /api/auth/login - Contraseña incorrecta (INVALID_PASSWORD)", async () => {
-    const res = await request(app)
-      .post("/api/auth/login")
-      .send({
-        email: userData.email,
-        password: "wrongpassword"
-      });
+    const res = await request(app).post("/api/auth/login").send({
+      email: userData.email,
+      password: "wrongpassword",
+    });
 
-          expect(res.statusCode).toBe(401);
-          expect(res.body).toHaveProperty("error", "INVALID_PASSWORD");  });
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty("error", "INVALID_PASSWORD");
+  });
 
   test("POST /api/auth/login - Login exitoso", async () => {
-    const res = await request(app)
-      .post("/api/auth/login")
-      .send({
-        email: userData.email,
-        password: userData.password
-      });
+    const res = await request(app).post("/api/auth/login").send({
+      email: userData.email,
+      password: userData.password,
+    });
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("token");
@@ -147,14 +139,16 @@ describe("Auth Endpoints", () => {
   });
 
   test("POST /api/auth/register - Error inesperado en registerCtrl (entra en catch)", async () => {
-    const spy = jest.spyOn(User.prototype, "save").mockImplementationOnce(() => {
-      throw new Error("Fallo forzado en DB");
-    });
+    const spy = jest
+      .spyOn(User.prototype, "save")
+      .mockImplementationOnce(() => {
+        throw new Error("Fallo forzado en DB");
+      });
 
     const user = {
       name: "Broken User",
       email: "broken@example.com",
-      password: "password123"
+      password: "password123",
     };
 
     const res = await request(app).post("/api/auth/register").send(user);
@@ -171,7 +165,7 @@ describe("Auth Endpoints", () => {
 
     const res = await request(app).post("/api/auth/login").send({
       email: "fake@example.com",
-      password: "password123"
+      password: "password123",
     });
 
     expect(res.statusCode).toBe(500);
@@ -184,27 +178,25 @@ describe("Auth Endpoints", () => {
     const res = await request(app)
       .post("/api/auth/login")
       .send({ email: "nonexistent@example.com", password: "password123" });
-  
+
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty("error", "USER_NOT_EXISTS");
   });
-  
+
   test("POST /api/auth/login - Rechaza login si el email no está verificado", async () => {
     // Crea usuario con email no verificado
     const newUser = await User.create({
       name: "No Verified",
       email: "noverified@example.com",
       password: await encrypt("12345678"),
-      isEmailVerified: false
+      isEmailVerified: false,
     });
-  
+
     const res = await request(app)
       .post("/api/auth/login")
       .send({ email: newUser.email, password: "12345678" });
-  
+
     expect(res.statusCode).toBe(403);
     expect(res.body).toHaveProperty("error", "EMAIL_NOT_VERIFIED");
   });
-  
-
 });

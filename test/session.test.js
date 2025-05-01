@@ -1,8 +1,3 @@
-// tests/session.test.js
-
-/* ------------------------------------------------------------ */
-/* 1. MOCKS GLOBALES (jest hoisted)                            */
-/* ------------------------------------------------------------ */
 jest.mock('../utils/handleError', () => ({
   handleHttpError: jest.fn()
 }));
@@ -15,17 +10,12 @@ jest.mock('../models/nosql/users', () => ({
   findById: jest.fn()
 }));
 
-/* ------------------------------------------------------------ */
-/* 2. IMPORTS (con mocks ya activos)                           */
-/* ------------------------------------------------------------ */
+
 const { handleHttpError } = require('../utils/handleError');
 const { verifyToken }     = require('../utils/handleJwt');
 const usersModel          = require('../models/nosql/users');
 const authMiddleware      = require('../middleware/session');
 
-/* ------------------------------------------------------------ */
-/* 3. HELPER para req/res/next                                 */
-/* ------------------------------------------------------------ */
 function makeRes() {
   return {
     status: jest.fn().mockReturnThis(),
@@ -33,9 +23,6 @@ function makeRes() {
   };
 }
 
-/* ------------------------------------------------------------ */
-/* 4. TESTS                                                     */
-/* ------------------------------------------------------------ */
 describe('middleware/session (authMiddleware)', () => {
   let req, res, next;
 

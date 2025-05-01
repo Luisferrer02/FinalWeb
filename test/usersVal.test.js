@@ -113,9 +113,6 @@ describe('validators/users.js – cobertura completa', () => {
 
 });
 
-/* ------------------------------------------------------------------ */
-/* validatorInviteUser & validatorAcceptInvite                        */
-/* ------------------------------------------------------------------ */
 const {
   validatorInviteUser,
   validatorAcceptInvite
